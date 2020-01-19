@@ -30,30 +30,32 @@ Partial Class Form1
         Me.EditConnString = New System.Windows.Forms.Button()
         Me.APO = New System.Windows.Forms.DateTimePicker()
         Me.EOS = New System.Windows.Forms.DateTimePicker()
+        Me.ListBox2 = New System.Windows.Forms.ListBox()
+        Me.Button2 = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'Button1
         '
-        Me.Button1.Location = New System.Drawing.Point(713, 7)
+        Me.Button1.Location = New System.Drawing.Point(625, 14)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(75, 23)
+        Me.Button1.Size = New System.Drawing.Size(180, 40)
         Me.Button1.TabIndex = 0
-        Me.Button1.Text = "send"
+        Me.Button1.Text = "send INV to AADE"
         Me.Button1.UseVisualStyleBackColor = True
         '
         'TextBox2
         '
-        Me.TextBox2.Location = New System.Drawing.Point(12, 95)
+        Me.TextBox2.Location = New System.Drawing.Point(12, 225)
         Me.TextBox2.Multiline = True
         Me.TextBox2.Name = "TextBox2"
-        Me.TextBox2.Size = New System.Drawing.Size(764, 321)
+        Me.TextBox2.Size = New System.Drawing.Size(764, 191)
         Me.TextBox2.TabIndex = 1
         '
         'toXML
         '
         Me.toXML.Location = New System.Drawing.Point(12, 3)
         Me.toXML.Name = "toXML"
-        Me.toXML.Size = New System.Drawing.Size(135, 23)
+        Me.toXML.Size = New System.Drawing.Size(264, 23)
         Me.toXML.TabIndex = 2
         Me.toXML.Text = "to-xml"
         Me.toXML.UseVisualStyleBackColor = True
@@ -62,9 +64,9 @@ Partial Class Form1
         '
         Me.Button3.Location = New System.Drawing.Point(12, 32)
         Me.Button3.Name = "Button3"
-        Me.Button3.Size = New System.Drawing.Size(135, 23)
+        Me.Button3.Size = New System.Drawing.Size(264, 23)
         Me.Button3.TabIndex = 3
-        Me.Button3.Text = "send income"
+        Me.Button3.Text = "SendIncomeClassification"
         Me.Button3.UseVisualStyleBackColor = True
         '
         'OpenFileDialog1
@@ -75,7 +77,7 @@ Partial Class Form1
         '
         Me.EditConnString.Location = New System.Drawing.Point(12, 61)
         Me.EditConnString.Name = "EditConnString"
-        Me.EditConnString.Size = New System.Drawing.Size(135, 23)
+        Me.EditConnString.Size = New System.Drawing.Size(264, 23)
         Me.EditConnString.TabIndex = 4
         Me.EditConnString.Text = "opendatabase"
         Me.EditConnString.UseVisualStyleBackColor = True
@@ -94,11 +96,30 @@ Partial Class Form1
         Me.EOS.Size = New System.Drawing.Size(130, 20)
         Me.EOS.TabIndex = 6
         '
+        'ListBox2
+        '
+        Me.ListBox2.FormattingEnabled = True
+        Me.ListBox2.Location = New System.Drawing.Point(0, 90)
+        Me.ListBox2.Name = "ListBox2"
+        Me.ListBox2.Size = New System.Drawing.Size(1180, 134)
+        Me.ListBox2.TabIndex = 8
+        '
+        'Button2
+        '
+        Me.Button2.Location = New System.Drawing.Point(899, 14)
+        Me.Button2.Name = "Button2"
+        Me.Button2.Size = New System.Drawing.Size(120, 40)
+        Me.Button2.TabIndex = 9
+        Me.Button2.Text = "check xml"
+        Me.Button2.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(800, 450)
+        Me.ClientSize = New System.Drawing.Size(1225, 450)
+        Me.Controls.Add(Me.Button2)
+        Me.Controls.Add(Me.ListBox2)
         Me.Controls.Add(Me.EOS)
         Me.Controls.Add(Me.APO)
         Me.Controls.Add(Me.EditConnString)
@@ -121,4 +142,6 @@ Partial Class Form1
     Friend WithEvents EditConnString As Button
     Friend WithEvents APO As DateTimePicker
     Friend WithEvents EOS As DateTimePicker
+    Friend WithEvents ListBox2 As ListBox
+    Friend WithEvents Button2 As Button
 End Class

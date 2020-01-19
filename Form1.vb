@@ -5,7 +5,7 @@ Imports System.IO
 Imports System.Xml
 Imports System.Data.OleDb
 Imports Microsoft.VisualBasic.Compatibility.VB6
-
+Imports System.Xml.Schema
 
 Public Class Form1
 
@@ -40,10 +40,14 @@ Public Class Form1
                 content.Headers.ContentType = New MediaTypeHeaderValue("application/xml")
                 response = Await client.PostAsync(uri, content)
                 Dim result = Await response.Content.ReadAsStringAsync()
-
+                Dim MF = "c:\txtfiles\apantSendInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+                FileOpen(1, mf, OpenMode.Output)
+                PrintLine(1, result.ToString)
+                FileClose(1)
                 TextBox2.Text = result.ToString
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
-
+                'Dim byteData2 As Byte() = File.ReadAllBytes("c:\txtfiles\inv.xml")
+                Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
             End Using
 
 
@@ -222,31 +226,31 @@ Public Class Form1
         '   Set db = OpenDatabase(gDir, False, False, gConnect)
         'End If
 
-        ExecuteSQLQuery("select POL,EIDOS,AJIA_APOU from PARASTAT", SQLDT2)
+        ExecuteSQLQuery("select POL,EIDOS,AJIA_APOU from PARASTAT", sqlDT2)
 
         pol = " "
 
         Dim row As Integer
-        For row = 0 To SQLDT2.Rows.Count - 1
+        For row = 0 To sqlDT2.Rows.Count - 1
 
-            If IsDBNull(SQLDT2.Rows(row)("eidos")) Or IsDBNull(SQLDT2.Rows(row)("pol")) Or IsDBNull(SQLDT2.Rows(row)("ajia_apou")) Then
+            If IsDBNull(sqlDT2.Rows(row)("eidos")) Or IsDBNull(sqlDT2.Rows(row)("pol")) Or IsDBNull(sqlDT2.Rows(row)("ajia_apou")) Then
 
             Else
 
-                If SQLDT2.Rows(row)("pol") = "1" And SQLDT2.Rows(row)("ajia_apou") = "3" Then
-                    pol = pol + "'" + SQLDT2.Rows(row)("eidos") + "',"
+                If sqlDT2.Rows(row)("pol") = "1" And sqlDT2.Rows(row)("ajia_apou") = "3" Then
+                    pol = pol + "'" + sqlDT2.Rows(row)("eidos") + "',"
                 End If
 
-                If SQLDT2.Rows(row)("pol") = "1" And SQLDT2.Rows(row)("ajia_apou") = "4" Then
-                    polepis = polepis + "'" + SQLDT2.Rows(row)("eidos") + "',"
+                If sqlDT2.Rows(row)("pol") = "1" And sqlDT2.Rows(row)("ajia_apou") = "4" Then
+                    polepis = polepis + "'" + sqlDT2.Rows(row)("eidos") + "',"
                 End If
 
-                If SQLDT2.Rows(row)("pol") = "2" And SQLDT2.Rows(row)("ajia_apou") = "1" Then
-                    ago = ago + "'" + SQLDT2.Rows(row)("eidos") + "',"
+                If sqlDT2.Rows(row)("pol") = "2" And sqlDT2.Rows(row)("ajia_apou") = "1" Then
+                    ago = ago + "'" + sqlDT2.Rows(row)("eidos") + "',"
                 End If
 
-                If SQLDT2.Rows(row)("pol") = "2" And SQLDT2.Rows(row)("ajia_apou") = "2" Then
-                    AGOEPIS = AGOEPIS + "'" + SQLDT2.Rows(row)("eidos") + "',"
+                If sqlDT2.Rows(row)("pol") = "2" And sqlDT2.Rows(row)("ajia_apou") = "2" Then
+                    AGOEPIS = AGOEPIS + "'" + sqlDT2.Rows(row)("eidos") + "',"
                 End If
 
 
@@ -297,7 +301,7 @@ Public Class Form1
         SYNT = ""
         SQL = "SELECT ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
         SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
-        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 "
+        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 ,ID_NUM"
 
         SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
         SQL = SQL + " WHERE LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
@@ -335,6 +339,14 @@ Public Class Form1
         Dim sumFpa As Single
 
         For i = 0 To sqlDT.Rows.Count - 1
+            Dim EGGTIM As New DataTable
+
+            ExecuteSQLQuery("SELECT * FROM EGGTIM WHERE POSO>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
+
+
+
+
+
             sumNet = sqlDT(i)("aj1") + sqlDT(i)("aj2") + sqlDT(i)("aj3") + sqlDT(i)("aj4") + sqlDT(i)("aj5") + sqlDT(i)("aj6") + sqlDT(i)("aj7")
             sumFpa = sqlDT(i)("fpa1") + sqlDT(i)("fpa2") + sqlDT(i)("fpa3") + sqlDT(i)("fpa4") + sqlDT(i)("fpa6") + sqlDT(i)("fpa7")
 
@@ -370,34 +382,44 @@ Public Class Form1
             '----------------------------------------------- header
             writer.WriteStartElement("invoiceHeader")
             crNode("series", "0", writer)
-            crNode("aa", sqlDT(i)("ATIM"), writer)   '  crNode("aa", "15", writer)
-            crNode("issueDate", Format(sqlDT(i)("ATIM"), "yyyy-MM-dd"), writer) ' crNode("issueDate", "2019-12-15", writer)
-            crNode("invoiceType", "1.1", writer)
+            crNode("aa", Mid(sqlDT(i)("ATIM"), 2, 6), writer)   '  crNode("aa", "15", writer)
+            crNode("issueDate", Format(sqlDT(i)("hme"), "yyyy-MM-dd"), writer) ' crNode("issueDate", "2019-12-15", writer)
+            crNode("invoiceType", "1.1", writer)   ' ειδος παραστατικού
             crNode("currency", "EUR", writer)
             crNode("exchangeRate", "1.0", writer)
             writer.WriteEndElement() ' /invoiceHeader
 
+            For L As Integer = 0 To EGGTIM.Rows.Count - 1
 
-            '-----------------------------------------------  invoiceDetails
-            writer.WriteStartElement("invoiceDetails")
-            crNode("lineNumber", "1", writer)
-            crNode("quantity", "1", writer)
-            crNode("measurementUnit", "1", writer)
-            crNode("netValue", Format(sumNet, "#######.##"), writer)  ' crNode("netValue", "100", writer)
-            crNode("vatCategory", "1", writer)
-            writer.WriteEndElement()   ' /invoiceDetails
-
+                Dim AJ As Single = EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100)
+                Dim VAT As String
+                If EGGTIM(L)("FPA") = 1 Then
+                    VAT = "2"
+                ElseIf EGGTIM(L)("FPA") = 2 Then
+                    VAT = "1"
+                Else ' If EGGTIM(L)("FPA") = 2 Then
+                    VAT = "1"
+                End If
+                '-----------------------------------------------  invoiceDetails
+                writer.WriteStartElement("invoiceDetails")
+                crNode("lineNumber", "1", writer)
+                crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
+                crNode("measurementUnit", "1", writer)
+                crNode("netValue", Format(AJ, "#######.###"), writer)  ' crNode("netValue", "100", writer)
+                crNode("vatCategory", VAT, writer) '1=24%   2=13%   
+                writer.WriteEndElement()   ' /invoiceDetails
+            Next
 
             '------------------------------------------------ InvoiceSummary 
             writer.WriteStartElement("invoiceSummary")
-            crNode("totalNetValue", Format(sumNet, "#######.##"), writer)  ' crNode("totalNetValue", "100", writer)
-            crNode("totalVatAmount", "24", writer)
+            crNode("totalNetValue", Format(sumNet, "#######.###"), writer)  ' crNode("totalNetValue", "100", writer)
+            crNode("totalVatAmount", Format(sumFpa, "#######.###"), writer)  '  crNode("totalVatAmount", "24", writer)
             crNode("totalWithheldAmount", "0", writer)
             crNode("totalFeesAmount", "0", writer)
             crNode("totalStampDutyAmount", "0", writer)
             crNode("totalOtherTaxesAmount", "0", writer)
             crNode("totalDeductionsAmount", "0", writer)
-            crNode("totalGrossValue", "124", writer)
+            crNode("totalGrossValue", Format(sumNet + sumFpa, "#######.###"), writer)
             writer.WriteEndElement() '  /invoicesummary
             '=========================================================
             writer.WriteEndElement() ' / Invoice
@@ -419,11 +441,71 @@ Public Class Form1
 
         writer.WriteEndDocument()
         writer.Close()
+        MsgBox("ok")
+
+
+        ' Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        Dim myDocument As New XmlDocument
+        myDocument.Load(ff) ' m_filename)  ' "C:\somefile.xml"
+        myDocument.Schemas.Add("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\InvoicesDoc-v0.5.1.xsd") 'namespace here or empty string
+        Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
+        myDocument.Validate(eventHandler)
+        MsgBox("ok ελεγχος")
+    End Sub
 
 
 
+    Private Sub Test()
+        Dim objWorkingXML As New System.Xml.XmlDocument
+        Dim objValidateXML As System.Xml.XmlValidatingReader
+        Dim objSchemasColl As New System.Xml.Schema.XmlSchemaCollection
+
+        objSchemasColl.Add("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\InvoicesDoc-v0.5.1.xsd")
+        objValidateXML = New System.Xml.XmlValidatingReader(New System.Xml.XmlTextReader("c:\txtfiles\inv2.xml"))
+
+        AddHandler objValidateXML.ValidationEventHandler, AddressOf ValidationCallBack
+        objValidateXML.Schemas.Add(objSchemasColl)
+
+        'This is WHERE the validation occurs.. WHEN the XML Document READS through the validating reader
+
+        objWorkingXML.Load(objValidateXML)
+
+        'Close the stream
+        objValidateXML.Close()
+
+
+        'The document is valid
+        MsgBox("THE DOCUMENT IS VALID")
 
     End Sub
+
+
+
+    Private Shared Sub ValidationCallBack(ByVal sender As Object, ByVal e As System.Xml.Schema.ValidationEventArgs)
+        Dim test As String
+        MsgBox(e.Message)
+        ' Throw e.Exception
+
+    End Sub
+
+
+
+
+
+
+
+    Private Sub ValidationEventHandler(ByVal sender As Object, ByVal e As ValidationEventArgs)
+        Select Case e.Severity
+            Case XmlSeverityType.Error
+                Debug.WriteLine("Error: {0}", e.Message)
+                ListBox2.Items.Add("ERROR " + e.Message)
+            Case XmlSeverityType.Warning
+                Debug.WriteLine("Warning {0}", e.Message)
+                ListBox2.Items.Add("warning " + e.Message)
+        End Select
+    End Sub
+
+
 
 
     Private Sub crNode(ByVal pName As String, ByVal cValue As String, ByVal writer As XmlTextWriter)
@@ -517,7 +599,7 @@ Public Class Form1
         'Return sqlDT
     End Sub
 
-
-
-
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Test()
+    End Sub
 End Class
