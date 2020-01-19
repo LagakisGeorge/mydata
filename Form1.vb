@@ -15,7 +15,7 @@ Public Class Form1
     Public gConnect As String
     Public sqlDT As New DataTable
     Public sqlDT2 As New DataTable
-
+    '  SELECT ENTITY ,ATIM,ENTITYUID,ENTITYMARK ,HME FROM TIM WHERE ENTITY>0 ORDER BY ENTITY'
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
         MakeRequest()
@@ -48,6 +48,8 @@ Public Class Form1
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
                 'Dim byteData2 As Byte() = File.ReadAllBytes("c:\txtfiles\inv.xml")
                 Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
+                FileCopy(MF, "c:\txtfiles\apantSendInv.XML")
+
             End Using
 
 
@@ -291,7 +293,7 @@ Public Class Form1
         If checkServer(0) Then
             ' MsgBox("OK")
         End If
-
+        ExecuteSQLQuery("UPDATE TIM SET ENTITY=0")
 
         Get_AJ_ASCII(pol, polepis, ago, AGOEPIS)
 
@@ -304,7 +306,7 @@ Public Class Form1
         SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 ,ID_NUM"
 
         SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
-        SQL = SQL + " WHERE LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
+        SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
         SQL = SQL + "  AND AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7>0  " + SYNT
         SQL = SQL + " order by HME"
 
@@ -341,8 +343,9 @@ Public Class Form1
         For i = 0 To sqlDT.Rows.Count - 1
             Dim EGGTIM As New DataTable
 
-            ExecuteSQLQuery("SELECT * FROM EGGTIM WHERE POSO>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
-
+            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA FROM EGGTIM WHERE POSO>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
+            Dim DUM As New DataTable
+            ExecuteSQLQuery("UPDATE TIM SET ENTITY=" + Str(i + 1) + " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
 
 
 
@@ -389,14 +392,53 @@ Public Class Form1
             crNode("exchangeRate", "1.0", writer)
             writer.WriteEndElement() ' /invoiceHeader
 
+
+
+            Dim SYN_KAU, SYN_FPA As Double
+            SYN_KAU = 0
+            SYN_FPA = 0
             For L As Integer = 0 To EGGTIM.Rows.Count - 1
 
-                Dim AJ As Single = EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100)
+                Dim AJ As Single
+                If IsDBNull(EGGTIM(L)("TIMM")) Then
+                    AJ = 0
+                Else
+                    AJ = Math.Round(EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100), 2)
+                End If
+
                 Dim VAT As String
-                If EGGTIM(L)("FPA") = 1 Then
+                '1 ΦΠΑ συντελεστής 24% 24% 
+                '2 ΦΠΑ συντελεστής 13% 13% 
+                '3 ΦΠΑ συντελεστής 6% 6% 
+                '4 ΦΠΑ συντελεστής 17% 17% 
+                '5 ΦΠΑ συντελεστής 9% 9% 
+                '6 ΦΠΑ συντελεστής 4% 4% 
+                '7 Άνευ Φ.Π.Α. 0%  
+                '8 Εγγραφές χωρίς ΦΠΑ  (πχ Μισθοδοσία, Αποσβέσεις) 
+
+
+
+                If EGGTIM(L)("FPA") = 1 Then '13%
                     VAT = "2"
+                    SYN_KAU = SYN_KAU + AJ
+                    SYN_FPA = SYN_FPA + AJ * 0.13
                 ElseIf EGGTIM(L)("FPA") = 2 Then
                     VAT = "1"
+                ElseIf EGGTIM(L)("FPA") = 2 Then
+                    VAT = "1"
+                    SYN_KAU = SYN_KAU + AJ
+                    SYN_FPA = SYN_FPA + AJ * 0.24
+
+                ElseIf EGGTIM(L)("FPA") = 5 Then
+                    VAT = "7"
+                    SYN_KAU = SYN_KAU + AJ
+
+                ElseIf EGGTIM(L)("FPA") = 6 Then
+                    VAT = "1"
+                    SYN_KAU = SYN_KAU + AJ
+                    SYN_FPA = SYN_FPA + AJ * 0.24
+                ElseIf EGGTIM(L)("FPA") = 4 Then
+                    VAT = "4"
                 Else ' If EGGTIM(L)("FPA") = 2 Then
                     VAT = "1"
                 End If
@@ -405,21 +447,21 @@ Public Class Form1
                 crNode("lineNumber", "1", writer)
                 crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
                 crNode("measurementUnit", "1", writer)
-                crNode("netValue", Format(AJ, "#######.###"), writer)  ' crNode("netValue", "100", writer)
+                crNode("netValue", Format(AJ, "######0.##"), writer)  ' crNode("netValue", "100", writer)
                 crNode("vatCategory", VAT, writer) '1=24%   2=13%   
                 writer.WriteEndElement()   ' /invoiceDetails
             Next
 
             '------------------------------------------------ InvoiceSummary 
             writer.WriteStartElement("invoiceSummary")
-            crNode("totalNetValue", Format(sumNet, "#######.###"), writer)  ' crNode("totalNetValue", "100", writer)
-            crNode("totalVatAmount", Format(sumFpa, "#######.###"), writer)  '  crNode("totalVatAmount", "24", writer)
+            crNode("totalNetValue", Format(SYN_KAU, "#######.#####"), writer)  ' crNode("totalNetValue", "100", writer)
+            crNode("totalVatAmount", Format(SYN_FPA, "#######.#####"), writer)  '  crNode("totalVatAmount", "24", writer)
             crNode("totalWithheldAmount", "0", writer)
             crNode("totalFeesAmount", "0", writer)
             crNode("totalStampDutyAmount", "0", writer)
             crNode("totalOtherTaxesAmount", "0", writer)
             crNode("totalDeductionsAmount", "0", writer)
-            crNode("totalGrossValue", Format(sumNet + sumFpa, "#######.###"), writer)
+            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "#######.#####"), writer)
             writer.WriteEndElement() '  /invoicesummary
             '=========================================================
             writer.WriteEndElement() ' / Invoice
@@ -444,6 +486,11 @@ Public Class Form1
         MsgBox("ok")
 
 
+        ListBox2.Items.Clear()
+        FileOpen(1, "C:\TXTFILES\CHECKXSD.TXT", OpenMode.Output)
+
+
+
         ' Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         Dim myDocument As New XmlDocument
         myDocument.Load(ff) ' m_filename)  ' "C:\somefile.xml"
@@ -451,6 +498,16 @@ Public Class Form1
         Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
         myDocument.Validate(eventHandler)
         MsgBox("ok ελεγχος")
+
+        For n As Integer = 0 To ListBox2.Items.Count - 1
+            PrintLine(1, ListBox2.Items(n).ToString)
+        Next
+
+
+
+
+        FileClose(1)
+
     End Sub
 
 
@@ -521,6 +578,10 @@ Public Class Form1
     Private Sub EditConnString_Click(sender As Object, e As EventArgs) Handles EditConnString.Click
         If checkServer(1) Then
             MsgBox("OK")
+            ExecuteSQLQuery("
+ALTER TABLE TIM ADD ENTITY INTEGER NULL;
+ALTER TABLE TIM ADD ENTITYUID VARCHAR(40) NULL;
+ALTER TABLE TIM ADD ENTITYMARK VARCHAR(43) NULL;")
         End If
     End Sub
 
@@ -601,5 +662,96 @@ Public Class Form1
 
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
         Test()
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+
+        If checkServer(0) Then
+            ' MsgBox("OK")
+        End If
+
+
+
+        Dim xmlDoc As New XmlDocument()
+        xmlDoc.Load("C:\TXTFILES\apantSendInv.xml")
+        Dim nodes As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/ResponseDoc/response")
+
+        'ExecuteSQLQuery("delete from oc_category_filter")
+        Me.Text = "Ελεγχος αριθμου εγγραφών"
+        Application.DoEvents()
+
+        Dim NF As Long = 0
+        For Each node As XmlNode In nodes
+            NF = NF + 1
+        Next
+        Application.DoEvents()
+        Me.Text = NF
+
+
+        ' ΕΔΩ ΔΗΜΙΟΥΡΓΩ ΤΟ INCOME ΑΡΧΕΙΟ ΜΕ ΠΡΟΣΔΙΟΡΙΣΜΟ ΤΗΣ ΚΑΘΕ ΕΓΓΡΑΦΗΣ
+
+        Dim ff As String = "c:\txtfiles\inC.xml"  'c:\mercvb\m" + Format(Now, "yyyyddmmHHMM") + ".export" ' "\\Logisthrio\333\pr.export" '
+        Dim writer As New XmlTextWriter(ff, System.Text.Encoding.UTF8)
+        writer.WriteStartDocument(True)
+        writer.Formatting = Formatting.Indented
+        writer.Indentation = 2
+        writer.WriteStartElement("IncomeClassificationsDoc")
+        writer.WriteAttributeString("xmlns", "http://www.aade.gr/myDATA/invoice/v1.0")
+        writer.WriteAttributeString("xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd")
+        writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+
+        ' writer.WriteStartElement("invoice")
+
+
+
+
+
+
+
+
+        Dim line As Integer
+        Dim entityUid As String
+        Dim entityMark As String
+        For Each node As XmlNode In nodes
+            Dim Status As String = node.SelectSingleNode("statusCode").InnerText
+            Dim merror As String
+            line = node.SelectSingleNode("entitylineNumber").InnerText
+
+
+            If Status = "Success" Then
+                entityUid = node.SelectSingleNode("entityUid").InnerText
+                entityMark = node.SelectSingleNode("entityMark").InnerText
+
+                'ΑΝ ΕΧΕΙ ΑΠΟΣΤΑΛΕΙ ΤΟ ΤΙΜΟΛΟΓΙΟ ΜΕ ΕΠΙΤΥΧΙΑ ΠΑΙΡΝΩ ΤΗΝ ΕΥΚΑΙΡΙΑ
+                'ΝΑ ΣΤΕΙΛΩ ΚΑΙ ΤΟΝ ΤΥΠΟ ΤΟΥ ΕΣΟΔΟΥ
+                writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
+                crNode("mark", entityMark, writer)
+                writer.WriteStartElement("invoicesIncomeClassificationDetails") '====
+                crNode("lineNumber", "1", writer)
+                writer.WriteStartElement("incomeClassificationDetailData") '***
+                crNode("classificationType", "101", writer)
+                crNode("classificationCategory", "1", writer)
+                Dim temp As New DataTable
+                ExecuteSQLQuery("select AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 FROM TIM   WHERE ENTITY=" + Str(line))
+                crNode("amount", Format(temp(0)(0), "#####0.##"), writer)
+                writer.WriteEndElement() 'incomeClassificationDetailData    '****
+                writer.WriteEndElement() ' invoicesIncomeClassificationDetails   ======
+                writer.WriteEndElement() ' incomeInvoiceClassification---------------------
+
+
+
+            Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.entityUid
+                entityUid = node.SelectSingleNode("errors/error/message").InnerText
+                entityMark = "ERROR"
+            End If
+
+            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(entityUid, 1, 40) + "' , ENTITYMARK='" + Mid(entityMark, 1, 13) + "' WHERE ENTITY=" + Str(line))
+
+
+        Next
+
+        writer.WriteEndDocument()
+        writer.Close()
+
     End Sub
 End Class

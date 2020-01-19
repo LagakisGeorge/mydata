@@ -32,6 +32,7 @@ Partial Class Form1
         Me.EOS = New System.Windows.Forms.DateTimePicker()
         Me.ListBox2 = New System.Windows.Forms.ListBox()
         Me.Button2 = New System.Windows.Forms.Button()
+        Me.Button4 = New System.Windows.Forms.Button()
         Me.SuspendLayout()
         '
         'Button1
@@ -113,11 +114,21 @@ Partial Class Form1
         Me.Button2.Text = "check xml"
         Me.Button2.UseVisualStyleBackColor = True
         '
+        'Button4
+        '
+        Me.Button4.Location = New System.Drawing.Point(1040, 14)
+        Me.Button4.Name = "Button4"
+        Me.Button4.Size = New System.Drawing.Size(121, 39)
+        Me.Button4.TabIndex = 10
+        Me.Button4.Text = "uPDATE WITH RESPONSE"
+        Me.Button4.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1225, 450)
+        Me.Controls.Add(Me.Button4)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.ListBox2)
         Me.Controls.Add(Me.EOS)
@@ -144,4 +155,5 @@ Partial Class Form1
     Friend WithEvents EOS As DateTimePicker
     Friend WithEvents ListBox2 As ListBox
     Friend WithEvents Button2 As Button
+    Friend WithEvents Button4 As Button
 End Class
