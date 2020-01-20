@@ -33,23 +33,25 @@ Partial Class Form1
         Me.ListBox2 = New System.Windows.Forms.ListBox()
         Me.Button2 = New System.Windows.Forms.Button()
         Me.Button4 = New System.Windows.Forms.Button()
+        Me.DataGridView1 = New System.Windows.Forms.DataGridView()
+        CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'Button1
         '
-        Me.Button1.Location = New System.Drawing.Point(625, 14)
+        Me.Button1.Location = New System.Drawing.Point(12, 27)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(180, 40)
+        Me.Button1.Size = New System.Drawing.Size(264, 28)
         Me.Button1.TabIndex = 0
-        Me.Button1.Text = "send INV to AADE"
+        Me.Button1.Text = "send INV to AADE-2"
         Me.Button1.UseVisualStyleBackColor = True
         '
         'TextBox2
         '
-        Me.TextBox2.Location = New System.Drawing.Point(12, 225)
+        Me.TextBox2.Location = New System.Drawing.Point(12, 200)
         Me.TextBox2.Multiline = True
         Me.TextBox2.Name = "TextBox2"
-        Me.TextBox2.Size = New System.Drawing.Size(764, 191)
+        Me.TextBox2.Size = New System.Drawing.Size(862, 191)
         Me.TextBox2.TabIndex = 1
         '
         'toXML
@@ -58,16 +60,16 @@ Partial Class Form1
         Me.toXML.Name = "toXML"
         Me.toXML.Size = New System.Drawing.Size(264, 23)
         Me.toXML.TabIndex = 2
-        Me.toXML.Text = "to-xml"
+        Me.toXML.Text = "to-xml-1"
         Me.toXML.UseVisualStyleBackColor = True
         '
         'Button3
         '
-        Me.Button3.Location = New System.Drawing.Point(12, 32)
+        Me.Button3.Location = New System.Drawing.Point(12, 94)
         Me.Button3.Name = "Button3"
         Me.Button3.Size = New System.Drawing.Size(264, 23)
         Me.Button3.TabIndex = 3
-        Me.Button3.Text = "SendIncomeClassification"
+        Me.Button3.Text = "4.SendIncomeClassification"
         Me.Button3.UseVisualStyleBackColor = True
         '
         'OpenFileDialog1
@@ -76,7 +78,7 @@ Partial Class Form1
         '
         'EditConnString
         '
-        Me.EditConnString.Location = New System.Drawing.Point(12, 61)
+        Me.EditConnString.Location = New System.Drawing.Point(610, 4)
         Me.EditConnString.Name = "EditConnString"
         Me.EditConnString.Size = New System.Drawing.Size(264, 23)
         Me.EditConnString.TabIndex = 4
@@ -85,14 +87,14 @@ Partial Class Form1
         '
         'APO
         '
-        Me.APO.Location = New System.Drawing.Point(394, 3)
+        Me.APO.Location = New System.Drawing.Point(416, 3)
         Me.APO.Name = "APO"
         Me.APO.Size = New System.Drawing.Size(130, 20)
         Me.APO.TabIndex = 5
         '
         'EOS
         '
-        Me.EOS.Location = New System.Drawing.Point(394, 35)
+        Me.EOS.Location = New System.Drawing.Point(416, 35)
         Me.EOS.Name = "EOS"
         Me.EOS.Size = New System.Drawing.Size(130, 20)
         Me.EOS.TabIndex = 6
@@ -100,34 +102,43 @@ Partial Class Form1
         'ListBox2
         '
         Me.ListBox2.FormattingEnabled = True
-        Me.ListBox2.Location = New System.Drawing.Point(0, 90)
+        Me.ListBox2.Location = New System.Drawing.Point(282, 60)
         Me.ListBox2.Name = "ListBox2"
-        Me.ListBox2.Size = New System.Drawing.Size(1180, 134)
+        Me.ListBox2.Size = New System.Drawing.Size(592, 134)
         Me.ListBox2.TabIndex = 8
         '
         'Button2
         '
-        Me.Button2.Location = New System.Drawing.Point(899, 14)
+        Me.Button2.Location = New System.Drawing.Point(610, 33)
         Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(120, 40)
+        Me.Button2.Size = New System.Drawing.Size(264, 22)
         Me.Button2.TabIndex = 9
         Me.Button2.Text = "check xml"
         Me.Button2.UseVisualStyleBackColor = True
         '
         'Button4
         '
-        Me.Button4.Location = New System.Drawing.Point(1040, 14)
+        Me.Button4.Location = New System.Drawing.Point(12, 60)
         Me.Button4.Name = "Button4"
-        Me.Button4.Size = New System.Drawing.Size(121, 39)
+        Me.Button4.Size = New System.Drawing.Size(264, 28)
         Me.Button4.TabIndex = 10
-        Me.Button4.Text = "uPDATE WITH RESPONSE"
+        Me.Button4.Text = "3.UPDATE TIM WITH RESPONSE & DHMIOYRGIA INC.XML"
         Me.Button4.UseVisualStyleBackColor = True
+        '
+        'DataGridView1
+        '
+        Me.DataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        Me.DataGridView1.Location = New System.Drawing.Point(881, 60)
+        Me.DataGridView1.Name = "DataGridView1"
+        Me.DataGridView1.Size = New System.Drawing.Size(332, 331)
+        Me.DataGridView1.TabIndex = 11
         '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1225, 450)
+        Me.Controls.Add(Me.DataGridView1)
         Me.Controls.Add(Me.Button4)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.ListBox2)
@@ -140,6 +151,7 @@ Partial Class Form1
         Me.Controls.Add(Me.Button1)
         Me.Name = "Form1"
         Me.Text = "Form1"
+        CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -156,4 +168,5 @@ Partial Class Form1
     Friend WithEvents ListBox2 As ListBox
     Friend WithEvents Button2 As Button
     Friend WithEvents Button4 As Button
+    Friend WithEvents DataGridView1 As DataGridView
 End Class

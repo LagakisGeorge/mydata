@@ -6,6 +6,7 @@ Imports System.Xml
 Imports System.Data.OleDb
 Imports Microsoft.VisualBasic.Compatibility.VB6
 Imports System.Xml.Schema
+Imports System.Data.SqlClient
 
 Public Class Form1
 
@@ -13,6 +14,7 @@ Public Class Form1
     Public openedFileStream As System.IO.Stream
     Public dataBytes() As Byte
     Public gConnect As String
+    Public gSQLCon As String
     Public sqlDT As New DataTable
     Public sqlDT2 As New DataTable
     '  SELECT ENTITY ,ATIM,ENTITYUID,ENTITYMARK ,HME FROM TIM WHERE ENTITY>0 ORDER BY ENTITY'
@@ -41,7 +43,7 @@ Public Class Form1
                 response = Await client.PostAsync(uri, content)
                 Dim result = Await response.Content.ReadAsStringAsync()
                 Dim MF = "c:\txtfiles\apantSendInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
-                FileOpen(1, mf, OpenMode.Output)
+                FileOpen(1, MF, OpenMode.Output)
                 PrintLine(1, result.ToString)
                 FileClose(1)
                 TextBox2.Text = result.ToString
@@ -62,6 +64,8 @@ Public Class Form1
 
 
     Private Async Sub MakeIncomeRequest()
+        ListBox2.Items.Clear()
+
         Dim client = New HttpClient()
         'Dim queryString = HttpUtility.ParseQueryString(String.Empty)
         Try
@@ -171,14 +175,18 @@ Public Class Form1
                 ";Initial Catalog=" & Trim(Split(tmpStr, ":")(5)) &
                 ";Data Source=" & Split(tmpStr, ":")(1)
 
+                ''   gConnect = "Provider=SQLOLEDB.1;;Password=" & Split(tmpStr, ":")(3) &
+                gSQLCon = "Server=" + Split(tmpStr, ":")(1)
+                gSQLCon = gSQLCon + ";Database=" + Trim(Split(tmpStr, ":")(5))
+                gSQLCon = gSQLCon + ";Uid=" + Split(tmpStr, ":")(2) + ";Pwd=" + Split(tmpStr, ":")(3)
 
 
 
             Else
                 'local
                 'MsgBox(Split(tmpStr, ":")(1))
-                gConnect = "Provider=SQLOLEDB;Server=" & Split(tmpStr, ":")(1) &
-                           ";Database=" & Split(tmpStr, ":")(5) & "; Trusted_Connection=yes;"
+                '  gConnect = "Provider=SQLOLEDB;Server=" & Split(tmpStr, ":")(1) &
+                '         ";Database=" & Split(tmpStr, ":")(5) & "; Trusted_Connection=yes;"
 
                 '    gConSQL = "Data Source=" & Split(tmpStr, ":")(1) & ";Integrated Security=True;database=" & Split(tmpStr, ":")(5)
                 'cnString = "Data Source=localhost\SQLEXPRESS;Integrated Security=True;database=YGEIA"
@@ -353,6 +361,8 @@ Public Class Form1
             sumNet = sqlDT(i)("aj1") + sqlDT(i)("aj2") + sqlDT(i)("aj3") + sqlDT(i)("aj4") + sqlDT(i)("aj5") + sqlDT(i)("aj6") + sqlDT(i)("aj7")
             sumFpa = sqlDT(i)("fpa1") + sqlDT(i)("fpa2") + sqlDT(i)("fpa3") + sqlDT(i)("fpa4") + sqlDT(i)("fpa6") + sqlDT(i)("fpa7")
 
+
+            writer.WriteComment(sqlDT(i)("ATIM") + " " + Format(sqlDT(i)("HME"), "dd/MM/yyyy"))
             writer.WriteStartElement("invoice")
             crNode("uid", "", writer)
             crNode("mark", "", writer)
@@ -444,7 +454,7 @@ Public Class Form1
                 End If
                 '-----------------------------------------------  invoiceDetails
                 writer.WriteStartElement("invoiceDetails")
-                crNode("lineNumber", "1", writer)
+                crNode("lineNumber", Str(L + 1), writer) '  crNode("lineNumber", "1", writer)
                 crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
                 crNode("measurementUnit", "1", writer)
                 crNode("netValue", Format(AJ, "######0.##"), writer)  ' crNode("netValue", "100", writer)
@@ -578,10 +588,12 @@ Public Class Form1
     Private Sub EditConnString_Click(sender As Object, e As EventArgs) Handles EditConnString.Click
         If checkServer(1) Then
             MsgBox("OK")
-            ExecuteSQLQuery("
-ALTER TABLE TIM ADD ENTITY INTEGER NULL;
-ALTER TABLE TIM ADD ENTITYUID VARCHAR(40) NULL;
-ALTER TABLE TIM ADD ENTITYMARK VARCHAR(43) NULL;")
+            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'AADEFPA') IS  NULL  BEGIN; ALTER TABLE TIM ADD AADEFPA FLOAT NULL;END")
+            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'AADEKAU') IS  NULL  BEGIN; ALTER TABLE TIM ADD AADEKAU FLOAT NULL;END")
+            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITY') IS  NULL  BEGIN;  ALTER TABLE TIM ADD ENTITY  INT NULL;END")
+            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITYUID') IS  NULL  BEGIN;  ALTER TABLE TIM ADD ENTITYUID VARCHAR(40) NULL;END")
+            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITYMARK') IS  NULL  BEGIN; ALTER TABLE TIM ADD ENTITYMARK VARCHAR(13) NULL;END")
+
         End If
     End Sub
 
@@ -696,13 +708,11 @@ ALTER TABLE TIM ADD ENTITYMARK VARCHAR(43) NULL;")
         writer.Formatting = Formatting.Indented
         writer.Indentation = 2
         writer.WriteStartElement("IncomeClassificationsDoc")
-        writer.WriteAttributeString("xmlns", "http://www.aade.gr/myDATA/invoice/v1.0")
-        writer.WriteAttributeString("xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd")
+        writer.WriteAttributeString("xmlns", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")
+        writer.WriteAttributeString("xsi:schemaLocation", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0 schema.xsd")
         writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
         ' writer.WriteStartElement("invoice")
-
-
 
 
 
@@ -724,20 +734,27 @@ ALTER TABLE TIM ADD ENTITYMARK VARCHAR(43) NULL;")
 
                 'ΑΝ ΕΧΕΙ ΑΠΟΣΤΑΛΕΙ ΤΟ ΤΙΜΟΛΟΓΙΟ ΜΕ ΕΠΙΤΥΧΙΑ ΠΑΙΡΝΩ ΤΗΝ ΕΥΚΑΙΡΙΑ
                 'ΝΑ ΣΤΕΙΛΩ ΚΑΙ ΤΟΝ ΤΥΠΟ ΤΟΥ ΕΣΟΔΟΥ
-                writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
-                crNode("mark", entityMark, writer)
-                writer.WriteStartElement("invoicesIncomeClassificationDetails") '====
-                crNode("lineNumber", "1", writer)
-                writer.WriteStartElement("incomeClassificationDetailData") '***
-                crNode("classificationType", "101", writer)
-                crNode("classificationCategory", "1", writer)
                 Dim temp As New DataTable
-                ExecuteSQLQuery("select AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 FROM TIM   WHERE ENTITY=" + Str(line))
-                crNode("amount", Format(temp(0)(0), "#####0.##"), writer)
-                writer.WriteEndElement() 'incomeClassificationDetailData    '****
-                writer.WriteEndElement() ' invoicesIncomeClassificationDetails   ======
-                writer.WriteEndElement() ' incomeInvoiceClassification---------------------
+                ExecuteSQLQuery("select AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7,ID_NUM,ATIM,HME FROM TIM   WHERE ENTITY=" + Str(line), temp)
 
+                Dim EGGTIM As New DataTable
+                ExecuteSQLQuery("select POSO*TIMM*(100-EKPT)/100 AS AJ FROM EGGTIM   WHERE ID_NUM=" + Str(temp(0)(1)), EGGTIM)
+
+                writer.WriteComment(temp(0)("ATIM") + " " + Format(temp(0)("HME"), "dd/MM/yyyy"))
+
+                For L As Integer = 0 To EGGTIM.Rows.Count - 1
+                    writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
+                    crNode("mark", entityMark, writer)
+                    writer.WriteStartElement("invoicesIncomeClassificationDetails") '====
+                    crNode("lineNumber", Str(L + 1), writer)
+                    writer.WriteStartElement("incomeClassificationDetailData") '***
+                    crNode("classificationType", "101", writer)
+                    crNode("classificationCategory", "1", writer)
+                    crNode("amount", Format(EGGTIM(L)(0), "#####0.##"), writer)
+                    writer.WriteEndElement() 'incomeClassificationDetailData    '****
+                    writer.WriteEndElement() ' invoicesIncomeClassificationDetails   ======
+                    writer.WriteEndElement() ' incomeInvoiceClassification---------------------
+                Next
 
 
             Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.entityUid
@@ -753,5 +770,134 @@ ALTER TABLE TIM ADD ENTITYMARK VARCHAR(43) NULL;")
         writer.WriteEndDocument()
         writer.Close()
 
+    End Sub
+
+    Private Sub ListBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox2.SelectedIndexChanged
+
+    End Sub
+
+    Public Sub paint_ergasies(GridView1 As DataGridView, sqlQuery As String)
+
+
+
+        Dim connectionString As String = gSQLCon '"Data Source=.;Initial Catalog=pubs;Integrated Security=True"
+        Dim sql As String = sqlQuery ' "SELECT * FROM TIM"
+        Dim connection As New SqlConnection(connectionString)
+        Dim dataadapter As New SqlDataAdapter(sql, connection)
+        Dim ds As New DataSet()
+        connection.Open()
+        dataadapter.Fill(ds, "Authors_table")
+        connection.Close()
+        GridView1.DataSource = ds
+        GridView1.DataMember = "Authors_table"
+
+
+
+
+
+
+
+
+
+
+        'Dim con As New OleDb.OleDbConnection
+        'con.ConnectionString = gConnect
+        'con.Open()
+        'Dim ds As DataSet = New DataSet
+        'Dim adapter As New OleDb.OleDbDataAdapter
+        'Dim sql As String
+
+        'sql = sqlQuery
+
+        'adapter.SelectCommand = New OleDb.OleDbCommand(sql, con)
+        'adapter.Fill(ds)
+        'GridView1.DataSource = ds.Tables(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        Exit Sub
+
+        ''Create connection
+        'Dim conn As SqlConnection
+
+        ''create data adapter
+        'Dim da As New SqlDataAdapter
+
+        ''create dataset
+        'Dim ds As DataSet = New DataSet
+
+        'conn = New SqlConnection(gSQLCon)
+        'Try
+        '    ' Open connection
+        '    conn.Open()
+
+        '    da = New SqlDataAdapter(sqlQuery, conn)
+
+        '    'create command builder
+        '    Dim cb As SqlCommandBuilder = New SqlCommandBuilder(da)
+        '    ds.Clear()
+        '    'fill dataset
+        '    da.Fill(ds, "PEL")
+        '    GridView1.ClearSelection()
+        '    GridView1.DataSource = ds
+        '    GridView1.DataMember = "PEL"
+
+
+        '    GridView1.Refresh()
+
+
+
+
+
+
+
+        'Catch ex As SqlException
+        '    MsgBox(ex.ToString)
+        'Finally
+        '    ' Close connection
+        '    conn.Close()
+        'End Try
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        If checkServer(0) Then
+
+        End If
+        paint_ergasies(DataGridView1, "select ATIM,HME,AJI FROM TIM")
     End Sub
 End Class
