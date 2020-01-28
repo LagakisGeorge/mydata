@@ -1,12 +1,16 @@
 ﻿Imports System.Net.Http
 Imports System.Net.Http.Headers
 Imports System.Text
-Imports System.IO
 Imports System.Xml
 Imports System.Data.OleDb
-Imports Microsoft.VisualBasic.Compatibility.VB6
 Imports System.Xml.Schema
 Imports System.Data.SqlClient
+Imports System.Web
+'Imports System.Net.Http.Headers
+'Imports System.Text
+'Imports System.Net.Http
+
+
 
 Public Class Form1
 
@@ -17,6 +21,7 @@ Public Class Form1
     Public gSQLCon As String
     Public sqlDT As New DataTable
     Public sqlDT2 As New DataTable
+    ' Public Property HttpUtility As Object
     '  SELECT ENTITY ,ATIM,ENTITYUID,ENTITYMARK ,HME FROM TIM WHERE ENTITY>0 ORDER BY ENTITY'
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
@@ -61,7 +66,9 @@ Public Class Form1
 
 
     End Sub
-
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        MakeIncomeRequest()
+    End Sub
 
     Private Async Sub MakeIncomeRequest()
         ListBox2.Items.Clear()
@@ -85,6 +92,16 @@ Public Class Form1
 
                 TextBox2.Text = result.ToString
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
+
+                Dim MF = "c:\txtfiles\apantiNCOMe" + Format(Now, "yyyyddMMHHmm") + ".xml"
+                FileOpen(1, MF, OpenMode.Output)
+                PrintLine(1, result.ToString)
+                FileClose(1)
+                TextBox2.Text = result.ToString
+                ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
+                'Dim byteData2 As Byte() = File.ReadAllBytes("c:\txtfiles\inv.xml")
+                ' Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
+                'FileCopy(MF, "c:\txtfiles\apantSendInv.XML")
 
             End Using
 
@@ -309,7 +326,7 @@ Public Class Form1
         PAR = pol + polepis
         Dim SQL As String
         SYNT = ""
-        SQL = "SELECT ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
+        SQL = "SELECT top 1 ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
         SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
         SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 ,ID_NUM"
 
@@ -462,6 +479,8 @@ Public Class Form1
                 writer.WriteEndElement()   ' /invoiceDetails
             Next
 
+            ExecuteSQLQuery("UPDATE TIM SET AADEKAU=" + Format(SYN_KAU, "#######.#####") + ",AADEFPA=" + Format(SYN_FPA, "#######.#####") +
+                            " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
             '------------------------------------------------ InvoiceSummary 
             writer.WriteStartElement("invoiceSummary")
             crNode("totalNetValue", Format(SYN_KAU, "#######.#####"), writer)  ' crNode("totalNetValue", "100", writer)
@@ -517,6 +536,8 @@ Public Class Form1
 
 
         FileClose(1)
+
+        paint_ergasies(DataGridView1, "SELECT ATIM,HME,ENTITY,AADEKAU,AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 AS KAUTIM,AADEFPA,FPA1+FPA2+FPA3+FPA4+FPA6+FPA7 AS FPATIM,ENTITYUID,ENTITYMARK FROM TIM WHERE ENTITY>0")
 
     End Sub
 
@@ -581,9 +602,7 @@ Public Class Form1
         writer.WriteEndElement()
     End Sub
 
-    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
-        MakeIncomeRequest()
-    End Sub
+
 
     Private Sub EditConnString_Click(sender As Object, e As EventArgs) Handles EditConnString.Click
         If checkServer(1) Then
@@ -676,7 +695,7 @@ Public Class Form1
         Test()
     End Sub
 
-    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+    Private Sub UPDATE_TIM_Click(sender As Object, e As EventArgs) Handles UPDATE_TIM.Click
 
         If checkServer(0) Then
             ' MsgBox("OK")
@@ -735,27 +754,29 @@ Public Class Form1
                 'ΑΝ ΕΧΕΙ ΑΠΟΣΤΑΛΕΙ ΤΟ ΤΙΜΟΛΟΓΙΟ ΜΕ ΕΠΙΤΥΧΙΑ ΠΑΙΡΝΩ ΤΗΝ ΕΥΚΑΙΡΙΑ
                 'ΝΑ ΣΤΕΙΛΩ ΚΑΙ ΤΟΝ ΤΥΠΟ ΤΟΥ ΕΣΟΔΟΥ
                 Dim temp As New DataTable
-                ExecuteSQLQuery("select AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7,ID_NUM,ATIM,HME FROM TIM   WHERE ENTITY=" + Str(line), temp)
+                ExecuteSQLQuery("select AADEKAU,ID_NUM,ATIM,HME FROM TIM   WHERE ENTITY=" + Str(line), temp)
 
                 Dim EGGTIM As New DataTable
-                ExecuteSQLQuery("select POSO*TIMM*(100-EKPT)/100 AS AJ FROM EGGTIM   WHERE ID_NUM=" + Str(temp(0)(1)), EGGTIM)
+                ExecuteSQLQuery("select POSO*TIMM*(100-EKPT)/100 AS AJ FROM EGGTIM   WHERE POSO*TIMM<>0 AND ID_NUM=" + Str(temp(0)(1)), EGGTIM)
 
                 writer.WriteComment(temp(0)("ATIM") + " " + Format(temp(0)("HME"), "dd/MM/yyyy"))
 
+                writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
+                crNode("mark", entityMark, writer)
+
                 For L As Integer = 0 To EGGTIM.Rows.Count - 1
-                    writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
-                    crNode("mark", entityMark, writer)
+
                     writer.WriteStartElement("invoicesIncomeClassificationDetails") '====
                     crNode("lineNumber", Str(L + 1), writer)
                     writer.WriteStartElement("incomeClassificationDetailData") '***
                     crNode("classificationType", "101", writer)
                     crNode("classificationCategory", "1", writer)
-                    crNode("amount", Format(EGGTIM(L)(0), "#####0.##"), writer)
+                    crNode("amount", Format(EGGTIM(L)(0), "#####0.#####"), writer)
                     writer.WriteEndElement() 'incomeClassificationDetailData    '****
                     writer.WriteEndElement() ' invoicesIncomeClassificationDetails   ======
-                    writer.WriteEndElement() ' incomeInvoiceClassification---------------------
-                Next
 
+                Next
+                writer.WriteEndElement() ' incomeInvoiceClassification---------------------
 
             Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.entityUid
                 entityUid = node.SelectSingleNode("errors/error/message").InnerText
@@ -898,6 +919,101 @@ Public Class Form1
         If checkServer(0) Then
 
         End If
-        paint_ergasies(DataGridView1, "select ATIM,HME,AJI FROM TIM")
+        paint_ergasies(DataGridView1, "Select ATIM, HME, ENTITY, AADEKAU, AJ1 + AJ2 + AJ3 + AJ4 + AJ5 + AJ6 + AJ7 As KAUTIM, AADEFPA, FPA1 + FPA2 + FPA3 + FPA4 + FPA6 + FPA7 As FPATIM, ENTITYUID, ENTITYMARK FROM TIM WHERE ENTITY>0")
     End Sub
+
+    ' Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+    Private Async Sub MakeRequest2()
+        Dim client = New HttpClient()
+        Dim queryString = HttpUtility.ParseQueryString(String.Empty)
+        client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
+        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+        queryString("mark") = "1000000006337" ' "{string}"
+        '  queryString("nextPartitionKey") = "{string}"
+        '   queryString("nextRowKey") = "{string}"
+        Dim uri = "https://mydata-dev.azure-api.net/RequestIssuerInvoices?" & queryString.ToString
+
+        Dim response = Await client.GetAsync(uri)
+        Dim result = Await response.Content.ReadAsStringAsync()
+        TextBox2.Text = result.ToString
+
+        Dim MF = "c:\txtfiles\apantReqInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+        FileOpen(1, MF, OpenMode.Output)
+        PrintLine(1, result.ToString)
+        FileClose(1)
+
+
+
+
+
+
+    End Sub
+
+    '        Using System;
+    'Using System.Net.Http.Headers;
+    'Using System.Text;
+    'Using System.Net.Http;
+    'Using System.Web;
+
+    'Namespace CSHttpClientSample
+    '{
+    '    Static Class Program
+    '    {
+    '        Static void Main()
+    '        {
+    '            MakeRequest();
+    '            Console.WriteLine("Hit ENTER to exit...");
+    '            Console.ReadLine();
+    '        }
+
+    '        Static Async void MakeRequest()
+    '        {
+    '            var client = New HttpClient();
+    '            var queryString = HttpUtility.ParseQueryString(String.Empty);
+
+    '            // Request headers
+    '            client.DefaultRequestHeaders.Add("aade-user-id", "");
+    '            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "{subscription key}");
+
+    '            // Request parameters
+    '            queryString["mark"] = "{string}";
+    '            queryString["nextPartitionKey"] = "{string}";
+    '            queryString["nextRowKey"] = "{string}";
+    '            var uri = "https://mydata-dev.azure-api.net/RequestIssuerInvoices?" + queryString;
+
+    '            var response = await client.GetAsync(uri);
+    '        }
+    '    }
+    '}	
+    '    End Sub
+
+
+    '  Imports System
+    '  Imports System.Net.Http.Headers
+    '  Imports System.Text
+    '  Imports System.Net.Http
+    '  Imports System.Web'
+    'Namespace CSHttpClientSample
+    '   Module' Program
+    Private Sub Main2()
+        MakeRequest()
+        Console.WriteLine("Hit ENTER to exit...")
+        Console.ReadLine()
+    End Sub
+
+    'Private Async Sub MakeRequest3()
+    '    Dim client = New HttpClient()
+    '    Dim queryString = HttpUtility.ParseQueryString(String.Empty)
+    '    client.DefaultRequestHeaders.Add("aade-user-id", "")
+    '    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "{subscription key}")
+    '    queryString("mark") = "{string}"
+    '    Dim uri = "https://mydata-dev.azure-api.net/RequestInvoices?" & queryString
+    '    Dim response = Await client.GetAsync(uri)
+    'End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        MakeRequest2()
+    End Sub
+    '   End Module
+    'End Namespace
 End Class

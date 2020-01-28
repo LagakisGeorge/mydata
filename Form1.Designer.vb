@@ -32,8 +32,9 @@ Partial Class Form1
         Me.EOS = New System.Windows.Forms.DateTimePicker()
         Me.ListBox2 = New System.Windows.Forms.ListBox()
         Me.Button2 = New System.Windows.Forms.Button()
-        Me.Button4 = New System.Windows.Forms.Button()
+        Me.UPDATE_TIM = New System.Windows.Forms.Button()
         Me.DataGridView1 = New System.Windows.Forms.DataGridView()
+        Me.Button4 = New System.Windows.Forms.Button()
         CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -116,30 +117,41 @@ Partial Class Form1
         Me.Button2.Text = "check xml"
         Me.Button2.UseVisualStyleBackColor = True
         '
-        'Button4
+        'UPDATE_TIM
         '
-        Me.Button4.Location = New System.Drawing.Point(12, 60)
-        Me.Button4.Name = "Button4"
-        Me.Button4.Size = New System.Drawing.Size(264, 28)
-        Me.Button4.TabIndex = 10
-        Me.Button4.Text = "3.UPDATE TIM WITH RESPONSE & DHMIOYRGIA INC.XML"
-        Me.Button4.UseVisualStyleBackColor = True
+        Me.UPDATE_TIM.Location = New System.Drawing.Point(12, 60)
+        Me.UPDATE_TIM.Name = "UPDATE_TIM"
+        Me.UPDATE_TIM.Size = New System.Drawing.Size(264, 28)
+        Me.UPDATE_TIM.TabIndex = 10
+        Me.UPDATE_TIM.Text = "3.UPDATE TIM WITH RESPONSE & DHMIOYRGIA INC.XML"
+        Me.UPDATE_TIM.UseVisualStyleBackColor = True
         '
         'DataGridView1
         '
         Me.DataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.DataGridView1.Location = New System.Drawing.Point(881, 60)
+        Me.DataGridView1.Location = New System.Drawing.Point(12, 397)
         Me.DataGridView1.Name = "DataGridView1"
-        Me.DataGridView1.Size = New System.Drawing.Size(332, 331)
+        Me.DataGridView1.Size = New System.Drawing.Size(862, 237)
         Me.DataGridView1.TabIndex = 11
+        '
+        'Button4
+        '
+        Me.Button4.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer), CType(CType(0, Byte), Integer))
+        Me.Button4.Location = New System.Drawing.Point(915, 4)
+        Me.Button4.Name = "Button4"
+        Me.Button4.Size = New System.Drawing.Size(161, 23)
+        Me.Button4.TabIndex = 12
+        Me.Button4.Text = "RequestInvoices"
+        Me.Button4.UseVisualStyleBackColor = False
         '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1225, 450)
-        Me.Controls.Add(Me.DataGridView1)
+        Me.ClientSize = New System.Drawing.Size(1428, 661)
         Me.Controls.Add(Me.Button4)
+        Me.Controls.Add(Me.DataGridView1)
+        Me.Controls.Add(Me.UPDATE_TIM)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.ListBox2)
         Me.Controls.Add(Me.EOS)
@@ -167,6 +179,7 @@ Partial Class Form1
     Friend WithEvents EOS As DateTimePicker
     Friend WithEvents ListBox2 As ListBox
     Friend WithEvents Button2 As Button
-    Friend WithEvents Button4 As Button
+    Friend WithEvents UPDATE_TIM As Button
     Friend WithEvents DataGridView1 As DataGridView
+    Friend WithEvents Button4 As Button
 End Class
