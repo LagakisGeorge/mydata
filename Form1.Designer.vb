@@ -35,6 +35,7 @@ Partial Class Form1
         Me.UPDATE_TIM = New System.Windows.Forms.Button()
         Me.DataGridView1 = New System.Windows.Forms.DataGridView()
         Me.Button4 = New System.Windows.Forms.Button()
+        Me.Button5 = New System.Windows.Forms.Button()
         CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -144,11 +145,21 @@ Partial Class Form1
         Me.Button4.Text = "RequestInvoices"
         Me.Button4.UseVisualStyleBackColor = False
         '
+        'Button5
+        '
+        Me.Button5.Location = New System.Drawing.Point(12, 133)
+        Me.Button5.Name = "Button5"
+        Me.Button5.Size = New System.Drawing.Size(264, 23)
+        Me.Button5.TabIndex = 13
+        Me.Button5.Text = "UpdateDB with IncResponse"
+        Me.Button5.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1428, 661)
+        Me.Controls.Add(Me.Button5)
         Me.Controls.Add(Me.Button4)
         Me.Controls.Add(Me.DataGridView1)
         Me.Controls.Add(Me.UPDATE_TIM)
@@ -182,4 +193,5 @@ Partial Class Form1
     Friend WithEvents UPDATE_TIM As Button
     Friend WithEvents DataGridView1 As DataGridView
     Friend WithEvents Button4 As Button
+    Friend WithEvents Button5 As Button
 End Class

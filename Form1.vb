@@ -31,6 +31,13 @@ Public Class Form1
 
 
     Private Async Sub MakeRequest()
+        ' ΣΤΕΛΝΩ ΣΤΟ SENDINVOICES 
+        ' "c:\txtfiles\inv.xml").ToString ' "--> εκει έχω αποθηκεύσει το xml που εφτιαξα"
+        ' H APANTHSH EINAI STO  "c:\txtfiles\apantSendInv.XML")
+
+
+
+
         Dim client = New HttpClient()
         'Dim queryString = HttpUtility.ParseQueryString(String.Empty)
         Try
@@ -71,6 +78,14 @@ Public Class Form1
     End Sub
 
     Private Async Sub MakeIncomeRequest()
+        'ΠΑΙΡΝΩ ΤΟ ΑΡΧΕΙΟ  c:\txtfiles\inc.xml"
+        ' ΚΑΙ ΣΤΕΛΝΩ ΤΟ SendIncomeClassification" 
+        ' Η ΑΠΑΝΤΗΣΗ ΕΙΝΑΙ ΤΟ "c:\txtfiles\apantiNCOMe" + Format(Now, "yyyyddMMHHmm") + ".xml"
+
+
+
+
+
         ListBox2.Items.Clear()
 
         Dim client = New HttpClient()
@@ -93,7 +108,7 @@ Public Class Form1
                 TextBox2.Text = result.ToString
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
 
-                Dim MF = "c:\txtfiles\apantiNCOMe" + Format(Now, "yyyyddMMHHmm") + ".xml"
+                Dim MF = "c:\txtfiles\ApantIncome" + Format(Now, "yyyyddMMHHmm") + ".xml"
                 FileOpen(1, MF, OpenMode.Output)
                 PrintLine(1, result.ToString)
                 FileClose(1)
@@ -101,7 +116,7 @@ Public Class Form1
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
                 'Dim byteData2 As Byte() = File.ReadAllBytes("c:\txtfiles\inv.xml")
                 ' Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
-                'FileCopy(MF, "c:\txtfiles\apantSendInv.XML")
+                FileCopy(MF, "c:\txtfiles\ApantIncome.XML")
 
             End Using
 
@@ -311,7 +326,15 @@ Public Class Form1
 
 
     Private Sub ToXML_Click(sender As Object, e As EventArgs) Handles toXML.Click
-        '====================================================================================
+        '===ΒΓΑΖΩ ΤΟ XML ΓΙΑ ΤΑ ΠΑΡΑΣΤΑΤΙΚΑ =================================================================================
+        'WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND   
+        'Left(ATIM, 1) In     (  " + PAR + "  )    And 
+        'HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
+
+
+
+
+
         Dim pol, polepis, ago, AGOEPIS As String
 
 
@@ -696,6 +719,13 @@ Public Class Form1
     End Sub
 
     Private Sub UPDATE_TIM_Click(sender As Object, e As EventArgs) Handles UPDATE_TIM.Click
+        'ΠΑΙΡΝΩ ΤΟ  "c:\txtfiles\apantSendInv.XML")
+        ' ΚΑΙ ΕΝΗΜΕΡΩΝΩ ΤΟ ΤΙΜ ΚΑΙ ΜΕΤΑ
+        '' ΕΔΩ ΔΗΜΙΟΥΡΓΩ ΤΟ INCOME ΑΡΧΕΙΟ ΜΕ ΠΡΟΣΔΙΟΡΙΣΜΟ ΤΗΣ ΚΑΘΕ ΕΓΓΡΑΦΗΣ    "c:\txtfiles\inC.xml"
+
+
+
+
 
         If checkServer(0) Then
             ' MsgBox("OK")
@@ -1013,6 +1043,58 @@ Public Class Form1
 
     Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
         MakeRequest2()
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        '======================================================================================
+        'βαζω σε αντιπαράθεση inc.xml & apantIncome.xml για να δω τελικά ποια έχουν πρόβλημα 
+        ' και να αποθηκεύσω το αποτέλεσμα στο ΤΙΜ
+        Dim cc(1000) As String
+
+
+        '=========================================
+        Dim xmlDoc As New XmlDocument()
+        xmlDoc.Load("C:\TXTFILES\tests1\Inc2.XML")
+        Dim nodes2 As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/IncomeClassificationsDoc/incomeInvoiceClassification")
+
+        Dim k As Integer = 0
+        For Each node As XmlNode In nodes2
+            k = k + 1
+
+            Dim Status As String = node.SelectSingleNode("mark").InnerText
+            cc(k) = Status
+            '  line = node.SelectSingleNode("entitylineNumber").InnerText
+        Next
+
+
+        ' <incomeInvoiceClassification>
+        '<mark>1000000002238</mark>
+
+        Exit Sub
+
+
+
+        xmlDoc.Load("C:\TXTFILES\ApantIncome.XML")
+        Dim nodes As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/ResponseDoc/response")
+
+        Dim line As Integer
+        Dim entityUid As String
+        Dim entityMark As String
+        For Each node As XmlNode In nodes
+            Dim Status As String = node.SelectSingleNode("statusCode").InnerText
+
+            line = node.SelectSingleNode("entitylineNumber").InnerText
+
+
+            If Status = "Success" Then
+                entityUid = node.SelectSingleNode("entityUid").InnerText
+                entityMark = node.SelectSingleNode("entityMark").InnerText
+            End If
+        Next
+
+
+
+
     End Sub
     '   End Module
     'End Namespace
