@@ -10,7 +10,14 @@ Imports System.Web
 'Imports System.Text
 'Imports System.Net.Http
 
-
+'ΑΛΛΑΓΕΣ ΣΤΟ ΤΙΜ 
+'    [ENTITYUID] [varchar](40) NULL,
+'	[ENTITYMARK] [varchar](43) NULL,
+'	[ENTITY] [int] NULL,
+'	[AADEKAU] [float] NULL,
+'	[AADEFPA] [float] NULL,
+'	[ENTLINEN] [int] NULL,
+'	[INCMARK] [nvarchar](43) NULL,
 
 Public Class Form1
 
@@ -761,7 +768,7 @@ Public Class Form1
         writer.WriteAttributeString("xsi:schemaLocation", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0 schema.xsd")
         writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
-        ' writer.WriteStartElement("invoice")
+
 
 
 
@@ -1047,50 +1054,35 @@ Public Class Form1
 
     Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
         '======================================================================================
-        'βαζω σε αντιπαράθεση inc.xml & apantIncome.xml για να δω τελικά ποια έχουν πρόβλημα 
+        'διαβαζω το apantIncome.xml για να δω τελικά ποια έχουν πρόβλημα 
         ' και να αποθηκεύσω το αποτέλεσμα στο ΤΙΜ
         Dim cc(1000) As String
 
 
-        '=========================================
         Dim xmlDoc As New XmlDocument()
-        xmlDoc.Load("C:\TXTFILES\tests1\Inc2.XML")
-        Dim nodes2 As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/IncomeClassificationsDoc/incomeInvoiceClassification")
-
-        Dim k As Integer = 0
-        For Each node As XmlNode In nodes2
-            k = k + 1
-
-            Dim Status As String = node.SelectSingleNode("mark").InnerText
-            cc(k) = Status
-            '  line = node.SelectSingleNode("entitylineNumber").InnerText
-        Next
-
-
-        ' <incomeInvoiceClassification>
-        '<mark>1000000002238</mark>
-
-        Exit Sub
-
-
-
-        xmlDoc.Load("C:\TXTFILES\ApantIncome.XML")
+        xmlDoc.Load("C:\TXTFILES\apantiNCOMe.xml")
         Dim nodes As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/ResponseDoc/response")
 
-        Dim line As Integer
-        Dim entityUid As String
-        Dim entityMark As String
+        'ExecuteSQLQuery("delete from oc_category_filter")
+        Me.Text = "Ελεγχος αριθμου εγγραφών"
+        Application.DoEvents()
+
+
+
+        Dim k As Integer = 0
         For Each node As XmlNode In nodes
+            k = k + 1
+
             Dim Status As String = node.SelectSingleNode("statusCode").InnerText
-
-            line = node.SelectSingleNode("entitylineNumber").InnerText
-
-
-            If Status = "Success" Then
-                entityUid = node.SelectSingleNode("entityUid").InnerText
-                entityMark = node.SelectSingleNode("entityMark").InnerText
-            End If
+            cc(k) = Status
+            Dim line As String = node.SelectSingleNode("entitylineNumber").InnerText
         Next
+
+
+
+
+        ' ΔΕΝ ΔΙΑΒΑΖΩ ΤΟ INC.XML ΓΙΑΤΙ ΤΑ ATTRIBUTES ΕΜΠΟΔΙΖΟΥΝ ΤΟ ΔΙΑΒΑΣΜΑ ΤΩΝ NODES
+        ' ΕΝΩ ΑΝ ΣΒΗΣΩ ΤΑ ATTRIBUTES ΔΙΠΛΑ ΑΠΟ ΤΟ IncomeClassificationsDoc ΔΟΥΛΕΥΕΙ ΚΑΝΟΝΙΚΑ
 
 
 
