@@ -2,6 +2,7 @@
 Imports System.Net.Http.Headers
 Imports System.Text
 Imports System.Xml
+Imports System.IO
 Imports System.Data.OleDb
 Imports System.Xml.Schema
 Imports System.Data.SqlClient
@@ -333,12 +334,16 @@ Public Class Form1
 
 
     Private Sub ToXML_Click(sender As Object, e As EventArgs) Handles toXML.Click
+        Dim I As Integer = ToXMLsub()
+    End Sub
+    Private Function ToXMLsub() As Integer
+
         '===ΒΓΑΖΩ ΤΟ XML ΓΙΑ ΤΑ ΠΑΡΑΣΤΑΤΙΚΑ =================================================================================
         'WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND   
         'Left(ATIM, 1) In     (  " + PAR + "  )    And 
         'HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
 
-
+        ToXMLsub = 1
 
 
 
@@ -348,7 +353,7 @@ Public Class Form1
         If checkServer(0) Then
             ' MsgBox("OK")
         End If
-        ExecuteSQLQuery("UPDATE TIM SET ENTITY=0")
+        ExecuteSQLQuery("UPDATE TIM SET ENTITY=0,ENTLINEN=0")
 
         Get_AJ_ASCII(pol, polepis, ago, AGOEPIS)
 
@@ -356,12 +361,12 @@ Public Class Form1
         PAR = pol + polepis
         Dim SQL As String
         SYNT = ""
-        SQL = "SELECT top 1 ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
+        SQL = "SELECT  ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
         SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
         SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 ,ID_NUM"
 
         SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
-        SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
+        SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' OR INCMARK IS NULL OR INCMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
         SQL = SQL + "  AND AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7>0  " + SYNT
         SQL = SQL + " order by HME"
 
@@ -374,7 +379,8 @@ Public Class Form1
 
         If sqlDT.Rows.Count = 0 Then
             MsgBox("ΔΕΝ ΒΡΕΘΗΚΑΝ ΕΓΓΡΑΦΕΣ")
-            Exit Sub
+            ToXMLsub = 0
+            Exit Function
         End If
 
 
@@ -397,8 +403,8 @@ Public Class Form1
 
         For i = 0 To sqlDT.Rows.Count - 1
             Dim EGGTIM As New DataTable
-
-            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA FROM EGGTIM WHERE POSO>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
+            Me.Text = "ΠΑΡΑΣΤΑΤΙΚΑ " + Str(i)
+            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA FROM EGGTIM WHERE TIMM<>0 AND POSO<>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
             Dim DUM As New DataTable
             ExecuteSQLQuery("UPDATE TIM SET ENTITY=" + Str(i + 1) + " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
 
@@ -428,11 +434,11 @@ Public Class Form1
 
             '--------------------------------------------- πελατης
             writer.WriteStartElement("counterpart")
-            crNode("vatNumber", sqlDT(i)("AFM"), writer)  ' crNode("vatNumber", "026677115", writer)
+            crNode("vatNumber", Trim(sqlDT(i)("AFM")), writer)  ' crNode("vatNumber", "026677115", writer)
             crNode("country", "GR", writer)
             crNode("branch", "0", writer)
             writer.WriteStartElement("address")
-            crNode("postalCode", sqlDT(i)("AFM"), writer)  'crNode("postalCode", """66100""", writer)
+            crNode("postalCode", """66100""", writer)  'crNode("postalCode", """66100""", writer)
             crNode("city", sqlDT(i)("POL"), writer)  ' crNode("city", """ΔΡΑΜΑ""", writer)
             writer.WriteEndElement() ' /address
             writer.WriteEndElement() ' /counterpart
@@ -542,7 +548,7 @@ Public Class Form1
 
         writer.WriteEndDocument()
         writer.Close()
-        MsgBox("ok")
+        '  MsgBox("ok")
 
 
         ListBox2.Items.Clear()
@@ -556,7 +562,7 @@ Public Class Form1
         myDocument.Schemas.Add("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\InvoicesDoc-v0.5.1.xsd") 'namespace here or empty string
         Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
         myDocument.Validate(eventHandler)
-        MsgBox("ok ελεγχος")
+        ' MsgBox("ok ελεγχος")
 
         For n As Integer = 0 To ListBox2.Items.Count - 1
             PrintLine(1, ListBox2.Items(n).ToString)
@@ -569,7 +575,7 @@ Public Class Form1
 
         paint_ergasies(DataGridView1, "SELECT ATIM,HME,ENTITY,AADEKAU,AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 AS KAUTIM,AADEFPA,FPA1+FPA2+FPA3+FPA4+FPA6+FPA7 AS FPATIM,ENTITYUID,ENTITYMARK FROM TIM WHERE ENTITY>0")
 
-    End Sub
+    End Function
 
 
 
@@ -726,6 +732,10 @@ Public Class Form1
     End Sub
 
     Private Sub UPDATE_TIM_Click(sender As Object, e As EventArgs) Handles UPDATE_TIM.Click
+        UpdateTim()
+    End Sub
+
+    Private Sub UpdateTim()
         'ΠΑΙΡΝΩ ΤΟ  "c:\txtfiles\apantSendInv.XML")
         ' ΚΑΙ ΕΝΗΜΕΡΩΝΩ ΤΟ ΤΙΜ ΚΑΙ ΜΕΤΑ
         '' ΕΔΩ ΔΗΜΙΟΥΡΓΩ ΤΟ INCOME ΑΡΧΕΙΟ ΜΕ ΠΡΟΣΔΙΟΡΙΣΜΟ ΤΗΣ ΚΑΘΕ ΕΓΓΡΑΦΗΣ    "c:\txtfiles\inC.xml"
@@ -774,7 +784,8 @@ Public Class Form1
 
 
 
-
+        Dim SuccessCounter = 0
+        Dim cSuccessCounter As String = "0"
         Dim line As Integer
         Dim entityUid As String
         Dim entityMark As String
@@ -787,14 +798,15 @@ Public Class Form1
             If Status = "Success" Then
                 entityUid = node.SelectSingleNode("entityUid").InnerText
                 entityMark = node.SelectSingleNode("entityMark").InnerText
-
+                SuccessCounter = SuccessCounter + 1
+                cSuccessCounter = Str(SuccessCounter)
                 'ΑΝ ΕΧΕΙ ΑΠΟΣΤΑΛΕΙ ΤΟ ΤΙΜΟΛΟΓΙΟ ΜΕ ΕΠΙΤΥΧΙΑ ΠΑΙΡΝΩ ΤΗΝ ΕΥΚΑΙΡΙΑ
                 'ΝΑ ΣΤΕΙΛΩ ΚΑΙ ΤΟΝ ΤΥΠΟ ΤΟΥ ΕΣΟΔΟΥ
                 Dim temp As New DataTable
                 ExecuteSQLQuery("select AADEKAU,ID_NUM,ATIM,HME FROM TIM   WHERE ENTITY=" + Str(line), temp)
 
                 Dim EGGTIM As New DataTable
-                ExecuteSQLQuery("select POSO*TIMM*(100-EKPT)/100 AS AJ FROM EGGTIM   WHERE POSO*TIMM<>0 AND ID_NUM=" + Str(temp(0)(1)), EGGTIM)
+                ExecuteSQLQuery("select round(POSO*TIMM*(100-EKPT)/100,2) AS AJ FROM EGGTIM   WHERE POSO*TIMM<>0 AND ID_NUM=" + Str(temp(0)(1)), EGGTIM)
 
                 writer.WriteComment(temp(0)("ATIM") + " " + Format(temp(0)("HME"), "dd/MM/yyyy"))
 
@@ -818,9 +830,10 @@ Public Class Form1
             Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.entityUid
                 entityUid = node.SelectSingleNode("errors/error/message").InnerText
                 entityMark = "ERROR"
+                cSuccessCounter = "0"
             End If
 
-            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(entityUid, 1, 40) + "' , ENTITYMARK='" + Mid(entityMark, 1, 13) + "' WHERE ENTITY=" + Str(line))
+            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(entityUid, 1, 40) + "' , ENTITYMARK='" + Mid(entityMark, 1, 13) + "',ENTLINEN=" + cSuccessCounter + "  WHERE ENTITY=" + Str(line))
 
 
         Next
@@ -1053,6 +1066,10 @@ Public Class Form1
     End Sub
 
     Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        UpdApantIncome()
+    End Sub
+
+    Private Sub UpdApantIncome()
         '======================================================================================
         'διαβαζω το apantIncome.xml για να δω τελικά ποια έχουν πρόβλημα 
         ' και να αποθηκεύσω το αποτέλεσμα στο ΤΙΜ
@@ -1072,10 +1089,23 @@ Public Class Form1
         Dim k As Integer = 0
         For Each node As XmlNode In nodes
             k = k + 1
-
+            Dim mEn As String
             Dim Status As String = node.SelectSingleNode("statusCode").InnerText
             cc(k) = Status
+
             Dim line As String = node.SelectSingleNode("entitylineNumber").InnerText
+            Dim entityMark As String
+
+
+            If Status = "Success" Then
+                'OK
+                entityMark = node.SelectSingleNode("entityMark").InnerText
+            Else
+                entityMark = "ERROR"
+            End If
+
+            ExecuteSQLQuery("update TIM SET INCMARK='" + entityMark + "' WHERE ENTLINEN=" + line)
+
         Next
 
 
@@ -1087,6 +1117,29 @@ Public Class Form1
 
 
 
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        File.Delete("C:\TXTFILES\INV.XML")
+        File.Delete("C:\TXTFILES\INC.XML")
+
+
+        Dim I As Integer = ToXMLsub()
+        If I = 0 Then
+            Exit Sub
+        End If
+        Threading.Thread.Sleep(5000)
+        MsgBox("1.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
+        MakeRequest()
+        Threading.Thread.Sleep(5000)
+        MsgBox("2.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
+        UpdateTim()
+        Threading.Thread.Sleep(5000)
+        MakeIncomeRequest()
+        MsgBox("3.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
+        Threading.Thread.Sleep(5000)
+        UpdApantIncome()
+        MsgBox("4.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
     End Sub
     '   End Module
     'End Namespace
