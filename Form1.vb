@@ -69,7 +69,7 @@ Public Class Form1
                 TextBox2.Text = result.ToString
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
                 'Dim byteData2 As Byte() = File.ReadAllBytes("c:\txtfiles\inv.xml")
-                Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
+                ' sept 2020 debug   Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
                 FileCopy(MF, "c:\txtfiles\apantSendInv.XML")
 
             End Using
@@ -147,7 +147,7 @@ Public Class Form1
         Dim mf As String
         mf = c   ' "c:\mercvb\err3.txt"
         If Len(Dir(UCase(mf))) = 0 Then
-            par = ":(local)\sql2012:sa:12345678:1:EMP"    '" 'G','g','Ξ','D'  "
+            par = ":DELLAGAKIS\SQL17:sa:12345678:1:EMP"    '" 'G','g','Ξ','D'  "
             par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ", , par)
         Else
             FileOpen(1, mf, OpenMode.Input)
@@ -393,6 +393,7 @@ Public Class Form1
         writer.WriteStartElement("InvoicesDoc")
         writer.WriteAttributeString("xmlns", "http://www.aade.gr/myDATA/invoice/v1.0")
         writer.WriteAttributeString("xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd")
+        writer.WriteAttributeString("xmlns:N1", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")
         writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
 
@@ -417,8 +418,8 @@ Public Class Form1
 
             writer.WriteComment(sqlDT(i)("ATIM") + " " + Format(sqlDT(i)("HME"), "dd/MM/yyyy"))
             writer.WriteStartElement("invoice")
-            crNode("uid", "", writer)
-            crNode("mark", "", writer)
+            'crNode("uid", "", writer)
+            'crNode("mark", "", writer)
 
 
             '---------------------------------------------εκδοτης
@@ -426,10 +427,10 @@ Public Class Form1
             crNode("vatNumber", "028783755", writer)
             crNode("country", "GR", writer)
             crNode("branch", "0", writer)
-            writer.WriteStartElement("address")
-            crNode("postalCode", """66100""", writer)
-            crNode("city", """ΔΡΑΜΑ""", writer)
-            writer.WriteEndElement() '/address
+            ' writer.WriteStartElement("address")
+            ' crNode("postalCode", """66100""", writer)
+            ' crNode("city", """ΔΡΑΜΑ""", writer)
+            ' writer.WriteEndElement() '/address
             writer.WriteEndElement() '/issuer
 
             '--------------------------------------------- πελατης
@@ -455,11 +456,26 @@ Public Class Form1
             crNode("exchangeRate", "1.0", writer)
             writer.WriteEndElement() ' /invoiceHeader
 
+            '          <paymentMethods>
+            '	<paymentMethodDetails>
+            '		<type>3</type>
+            '		<amount>66.53</amount>
+            '	</paymentMethodDetails>
+            '</paymentMethods>
+            '----------------------------------------------- paymentMethods
+            writer.WriteStartElement("paymentMethods")
+            writer.WriteStartElement("paymentMethodDetails")
+            crNode("type", "3", writer)
+            crNode("amount", Format(sumNet + sumFpa, "######0.##"), writer)   '  crNode("aa", "15", writer)
+
+            writer.WriteEndElement() ' /paymentMethodDetails
+            writer.WriteEndElement() ' /paymentMethods
 
 
             Dim SYN_KAU, SYN_FPA As Double
             SYN_KAU = 0
             SYN_FPA = 0
+            Dim fpaRow As Double
             For L As Integer = 0 To EGGTIM.Rows.Count - 1
 
                 Dim AJ As Single
@@ -484,49 +500,94 @@ Public Class Form1
                 If EGGTIM(L)("FPA") = 1 Then '13%
                     VAT = "2"
                     SYN_KAU = SYN_KAU + AJ
-                    SYN_FPA = SYN_FPA + AJ * 0.13
-                ElseIf EGGTIM(L)("FPA") = 2 Then
-                    VAT = "1"
+                    fpaRow = AJ * 0.13
+                    SYN_FPA = SYN_FPA + fpaRow
+
+                    'ElseIf EGGTIM(L)("FPA") = 2 Then
+                    '   VAT = "1"
                 ElseIf EGGTIM(L)("FPA") = 2 Then
                     VAT = "1"
                     SYN_KAU = SYN_KAU + AJ
-                    SYN_FPA = SYN_FPA + AJ * 0.24
+                    fpaRow = AJ * 0.24
+                    SYN_FPA = SYN_FPA + fpaRow
+
+                    ' SYN_FPA = SYN_FPA + AJ * 0.24
 
                 ElseIf EGGTIM(L)("FPA") = 5 Then
                     VAT = "7"
                     SYN_KAU = SYN_KAU + AJ
+                    fpaRow = 0
 
                 ElseIf EGGTIM(L)("FPA") = 6 Then
                     VAT = "1"
                     SYN_KAU = SYN_KAU + AJ
-                    SYN_FPA = SYN_FPA + AJ * 0.24
+                    ' SYN_FPA = SYN_FPA + AJ * 0.24
+
+                    fpaRow = AJ * 0.24
+                    SYN_FPA = SYN_FPA + fpaRow
+
+
+
+
                 ElseIf EGGTIM(L)("FPA") = 4 Then
                     VAT = "4"
+                    SYN_KAU = SYN_KAU + AJ
+                    fpaRow = AJ * 0.06
+                    SYN_FPA = SYN_FPA + fpaRow
                 Else ' If EGGTIM(L)("FPA") = 2 Then
                     VAT = "1"
                 End If
                 '-----------------------------------------------  invoiceDetails
                 writer.WriteStartElement("invoiceDetails")
                 crNode("lineNumber", Str(L + 1), writer) '  crNode("lineNumber", "1", writer)
-                crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
-                crNode("measurementUnit", "1", writer)
+                '    crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
+                '    crNode("measurementUnit", "1", writer)
                 crNode("netValue", Format(AJ, "######0.##"), writer)  ' crNode("netValue", "100", writer)
+
                 crNode("vatCategory", VAT, writer) '1=24%   2=13%   
+
+                crNode("vatAmount", Format(fpaRow, "######0.##"), writer)  ' c
+
+                writer.WriteStartElement("incomeClassification")
+                crNode("N1:classificationType", "E3_561_001", writer)
+                crNode("N1:classificationCategory", "category1_1", writer)
+                crNode("N1:amount", Format(AJ, "######0.##"), writer)
+
+                writer.WriteEndElement() '/incomeClassification
+
+                '            	<incomeClassification>
+                '<N1:classificationType> E3_561_001</N1:classificationType>
+                '            <N1:classificationCategory>category1_1</N1:classificationCategory>
+                '<N1:amount> 100.0</N1:amount>
+                '    </incomeClassification>
+
+
                 writer.WriteEndElement()   ' /invoiceDetails
             Next
 
-            ExecuteSQLQuery("UPDATE TIM SET AADEKAU=" + Format(SYN_KAU, "#######.#####") + ",AADEFPA=" + Format(SYN_FPA, "#######.#####") +
+            ExecuteSQLQuery("UPDATE TIM SET AADEKAU=" + Replace(Format(SYN_KAU, "#######.#####"), ",", ".") + ",AADEFPA=" + Replace(Format(SYN_FPA, "#######.#####"), ",", ".") +
                             " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
             '------------------------------------------------ InvoiceSummary 
             writer.WriteStartElement("invoiceSummary")
-            crNode("totalNetValue", Format(SYN_KAU, "#######.#####"), writer)  ' crNode("totalNetValue", "100", writer)
-            crNode("totalVatAmount", Format(SYN_FPA, "#######.#####"), writer)  '  crNode("totalVatAmount", "24", writer)
+            crNode("totalNetValue", Format(SYN_KAU, "#######.##"), writer)  ' crNode("totalNetValue", "100", writer)
+            crNode("totalVatAmount", Format(SYN_FPA, "#######.##"), writer)  '  crNode("totalVatAmount", "24", writer)
             crNode("totalWithheldAmount", "0", writer)
             crNode("totalFeesAmount", "0", writer)
             crNode("totalStampDutyAmount", "0", writer)
             crNode("totalOtherTaxesAmount", "0", writer)
             crNode("totalDeductionsAmount", "0", writer)
-            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "#######.#####"), writer)
+            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "#######.##"), writer)
+
+
+            writer.WriteStartElement("incomeClassification")
+            crNode("N1:classificationType", "E3_561_001", writer)
+            crNode("N1:classificationCategory", "category1_1", writer)
+            crNode("N1:amount", Format(SYN_KAU, "######0.##"), writer)
+            writer.WriteEndElement() '  /invoicesummary
+
+
+
+
             writer.WriteEndElement() '  /invoicesummary
             '=========================================================
             writer.WriteEndElement() ' / Invoice
@@ -552,28 +613,29 @@ Public Class Form1
 
 
         ListBox2.Items.Clear()
-        FileOpen(1, "C:\TXTFILES\CHECKXSD.TXT", OpenMode.Output)
 
 
 
-        ' Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Dim myDocument As New XmlDocument
-        myDocument.Load(ff) ' m_filename)  ' "C:\somefile.xml"
-        myDocument.Schemas.Add("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\InvoicesDoc-v0.5.1.xsd") 'namespace here or empty string
-        Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
-        myDocument.Validate(eventHandler)
-        ' MsgBox("ok ελεγχος")
+        '------ τοπικος ελεγχος xml που τον καταργησα γιατι μπηκε και το "https://www.aade.gr/myDATA/incomeClassificaton/v1.0
+        'FileOpen(1, "C:\TXTFILES\CHECKXSD.TXT", OpenMode.Output)
+        ''        Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        'Dim myDocument As New XmlDocument
+        'myDocument.Load(ff) ' m_filename)  ' "C:\somefile.xml"
+        'myDocument.Schemas.Axmlns:N1dd("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\invoicesDoc-v0.6.xsd") 'namespace here or empty string
+        'Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
+        'myDocument.Validate(eventHandler)
+        ''       MsgBox("ok ελεγχος")
+        'For n As Integer = 0 To ListBox2.Items.Count - 1
+        '    PrintLine(1, ListBox2.Items(n).ToString)
+        'Next
+        'FileClose(1)
 
-        For n As Integer = 0 To ListBox2.Items.Count - 1
-            PrintLine(1, ListBox2.Items(n).ToString)
-        Next
 
 
 
 
-        FileClose(1)
 
-        paint_ergasies(DataGridView1, "SELECT ATIM,HME,ENTITY,AADEKAU,AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 AS KAUTIM,AADEFPA,FPA1+FPA2+FPA3+FPA4+FPA6+FPA7 AS FPATIM,ENTITYUID,ENTITYMARK FROM TIM WHERE ENTITY>0")
+        paint_ergasies(DataGridView1, "SELECT   ATIM,HME,ENTITY,AADEKAU,AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 AS KAUTIM,AADEFPA,FPA1+FPA2+FPA3+FPA4+FPA6+FPA7 AS FPATIM,ENTITYUID,ENTITYMARK FROM TIM WHERE ENTITY>0")
 
     End Function
 
@@ -584,7 +646,7 @@ Public Class Form1
         Dim objValidateXML As System.Xml.XmlValidatingReader
         Dim objSchemasColl As New System.Xml.Schema.XmlSchemaCollection
 
-        objSchemasColl.Add("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\InvoicesDoc-v0.5.1.xsd")
+        objSchemasColl.Add("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\invoicesDoc-v0.6.xsd")
         objValidateXML = New System.Xml.XmlValidatingReader(New System.Xml.XmlTextReader("c:\txtfiles\inv2.xml"))
 
         AddHandler objValidateXML.ValidationEventHandler, AddressOf ValidationCallBack

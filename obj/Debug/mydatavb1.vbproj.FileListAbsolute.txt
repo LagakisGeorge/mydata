@@ -22,3 +22,15 @@ F:\adoprog2\mydatavb\mydatavb1\obj\Debug\mydatavb1.vbproj.CoreCompileInputs.cach
 F:\adoprog2\mydatavb\mydatavb1\obj\Debug\mydatavb1.exe
 F:\adoprog2\mydatavb\mydatavb1\obj\Debug\mydatavb1.xml
 F:\adoprog2\mydatavb\mydatavb1\obj\Debug\mydatavb1.pdb
+C:\vb2019\mydata\bin\Debug\mydatavb1.exe.config
+C:\vb2019\mydata\bin\Debug\mydatavb1.exe
+C:\vb2019\mydata\bin\Debug\mydatavb1.pdb
+C:\vb2019\mydata\bin\Debug\mydatavb1.xml
+C:\vb2019\mydata\obj\Debug\mydatavb1.vbprojAssemblyReference.cache
+C:\vb2019\mydata\obj\Debug\mydatavb1.Form1.resources
+C:\vb2019\mydata\obj\Debug\mydatavb1.Resources.resources
+C:\vb2019\mydata\obj\Debug\mydatavb1.vbproj.GenerateResource.cache
+C:\vb2019\mydata\obj\Debug\mydatavb1.vbproj.CoreCompileInputs.cache
+C:\vb2019\mydata\obj\Debug\mydatavb1.exe
+C:\vb2019\mydata\obj\Debug\mydatavb1.xml
+C:\vb2019\mydata\obj\Debug\mydatavb1.pdb

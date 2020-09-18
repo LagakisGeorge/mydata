@@ -90,6 +90,7 @@ Partial Class Form1
         '
         'APO
         '
+        Me.APO.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
         Me.APO.Location = New System.Drawing.Point(416, 3)
         Me.APO.Name = "APO"
         Me.APO.Size = New System.Drawing.Size(130, 20)
@@ -97,6 +98,7 @@ Partial Class Form1
         '
         'EOS
         '
+        Me.EOS.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
         Me.EOS.Location = New System.Drawing.Point(416, 35)
         Me.EOS.Name = "EOS"
         Me.EOS.Size = New System.Drawing.Size(130, 20)

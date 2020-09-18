@@ -8,6 +8,16 @@
 '	[ENTLINEN] [int] NULL,
 '	[INCMARK] [nvarchar](43) NULL,
 
+TREXV TO QUERY :
+ALTER TABLE TIM ADD
+[ENTITYUID] [varchar](40) NULL,
+	[ENTITYMARK] [varchar](43) NULL,
+	[ENTITY] [int] NULL,
+	[AADEKAU] [float] NULL,
+	[AADEFPA] [float] NULL,
+	[ENTLINEN] [int] NULL,
+	[INCMARK] [nvarchar](43) NULL
+
 
 ÁÐÏ ÔÉÌ => INVyyyyddmmhhmm.xml
 áðáíôçóç ÁÁÄÅ   INVyyyyddmmhhmm.xml => apantSendInv.xml
