@@ -62,7 +62,7 @@ Public Class Form1
                 content.Headers.ContentType = New MediaTypeHeaderValue("application/xml")
                 response = Await client.PostAsync(uri, content)
                 Dim result = Await response.Content.ReadAsStringAsync()
-                Dim MF = "c:\txtfiles\apantSendInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+                Dim MF = "c:\txtfiles\sendinv\apantSendInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
                 FileOpen(1, MF, OpenMode.Output)
                 PrintLine(1, result.ToString)
                 FileClose(1)
@@ -255,6 +255,33 @@ Public Class Form1
             'End
         End Try
     End Function
+
+
+    Function FINDTYPOS(C As String) As String
+        Dim sqlDT4 As New DataTable
+        ExecuteSQLQuery("select ETIK from PARASTAT where EIDOS='" + C + "'", sqlDT4)
+        If IsDBNull(sqlDT4(0)(0)) Then
+            FINDTYPOS = ""
+        Else
+            FINDTYPOS = sqlDT4(0)(0).ToString
+        End If
+
+
+        FINDTYPOS = FINDTYPOS.Trim()
+
+        ' If InStr(FINDTYPOS, ";") = 0 Then
+        FINDTYPOS = FINDTYPOS + ";;" ' gia na mhn skaei to split()
+        ' Else
+
+
+        ' End If
+
+
+    End Function
+
+
+
+
     Function Get_AJ_ASCII(ByRef pol As String,
                           ByVal polepis As String,
                           ByVal ago As String,
@@ -363,7 +390,7 @@ Public Class Form1
         SYNT = ""
         SQL = "SELECT  ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
         SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
-        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 ,ID_NUM"
+        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 "
 
         SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
         SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' OR INCMARK IS NULL OR INCMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
@@ -401,6 +428,8 @@ Public Class Form1
         Dim i As Integer
         Dim sumNet As Single
         Dim sumFpa As Single
+        Dim ctypos As String
+
 
         For i = 0 To sqlDT.Rows.Count - 1
             Dim EGGTIM As New DataTable
@@ -414,6 +443,15 @@ Public Class Form1
 
             sumNet = sqlDT(i)("aj1") + sqlDT(i)("aj2") + sqlDT(i)("aj3") + sqlDT(i)("aj4") + sqlDT(i)("aj5") + sqlDT(i)("aj6") + sqlDT(i)("aj7")
             sumFpa = sqlDT(i)("fpa1") + sqlDT(i)("fpa2") + sqlDT(i)("fpa3") + sqlDT(i)("fpa4") + sqlDT(i)("fpa6") + sqlDT(i)("fpa7")
+
+            '1.1;E3_561_001;category1_1
+            ctypos = FINDTYPOS(Mid(sqlDT(i)("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
+            If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
+                writer.Close()
+                MsgBox("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " + sqlDT(i)("ATIM"))
+                Exit Function
+
+            End If
 
 
             writer.WriteComment(sqlDT(i)("ATIM") + " " + Format(sqlDT(i)("HME"), "dd/MM/yyyy"))
@@ -434,8 +472,12 @@ Public Class Form1
             writer.WriteEndElement() '/issuer
 
             '--------------------------------------------- πελατης
-            writer.WriteStartElement("counterpart")
-            crNode("vatNumber", Trim(sqlDT(i)("AFM")), writer)  ' crNode("vatNumber", "026677115", writer)
+            If Mid(Split(ctypos, ";")(0), 1, 2) = "11" Then
+                'lianikh den xreiazetai pelaths
+            Else
+                ' End If
+                writer.WriteStartElement("counterpart")
+                crNode("vatNumber", Trim(sqlDT(i)("AFM")), writer)  ' crNode("vatNumber", "026677115", writer)
             crNode("country", "GR", writer)
             crNode("branch", "0", writer)
             writer.WriteStartElement("address")
@@ -443,7 +485,7 @@ Public Class Form1
             crNode("city", sqlDT(i)("POL"), writer)  ' crNode("city", """ΔΡΑΜΑ""", writer)
             writer.WriteEndElement() ' /address
             writer.WriteEndElement() ' /counterpart
-
+            End If
 
 
             '----------------------------------------------- header
@@ -451,7 +493,18 @@ Public Class Form1
             crNode("series", "0", writer)
             crNode("aa", Mid(sqlDT(i)("ATIM"), 2, 6), writer)   '  crNode("aa", "15", writer)
             crNode("issueDate", Format(sqlDT(i)("hme"), "yyyy-MM-dd"), writer) ' crNode("issueDate", "2019-12-15", writer)
-            crNode("invoiceType", "1.1", writer)   ' ειδος παραστατικού
+
+
+            'ctypos = FINDTYPOS(Mid(sqlDT(i)("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
+            'If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
+            '    writer.Close()
+            '    MsgBox("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " + sqlDT(i)("ATIM"))
+            '    Exit Function
+
+            'End If
+
+
+            crNode("invoiceType", Split(ctypos, ";")(0), writer)   ' ειδος παραστατικού
             crNode("currency", "EUR", writer)
             crNode("exchangeRate", "1.0", writer)
             writer.WriteEndElement() ' /invoiceHeader
@@ -549,8 +602,8 @@ Public Class Form1
                 crNode("vatAmount", Format(fpaRow, "######0.##"), writer)  ' c
 
                 writer.WriteStartElement("incomeClassification")
-                crNode("N1:classificationType", "E3_561_001", writer)
-                crNode("N1:classificationCategory", "category1_1", writer)
+                crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
+                crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
                 crNode("N1:amount", Format(AJ, "######0.##"), writer)
 
                 writer.WriteEndElement() '/incomeClassification
@@ -580,8 +633,8 @@ Public Class Form1
 
 
             writer.WriteStartElement("incomeClassification")
-            crNode("N1:classificationType", "E3_561_001", writer)
-            crNode("N1:classificationCategory", "category1_1", writer)
+            crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
+            crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
             crNode("N1:amount", Format(SYN_KAU, "######0.##"), writer)
             writer.WriteEndElement() '  /invoicesummary
 
@@ -1061,6 +1114,10 @@ Public Class Form1
 
     End Sub
 
+
+
+
+
     '        Using System;
     'Using System.Net.Http.Headers;
     'Using System.Text;
@@ -1203,6 +1260,99 @@ Public Class Form1
         UpdApantIncome()
         MsgBox("4.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
     End Sub
-    '   End Module
-    'End Namespace
+
+    Private Sub CancInv_Click(sender As Object, e As EventArgs) Handles CancInv.Click
+        CancelInvoice()
+    End Sub
+
+
+
+
+
+    Private Async Sub CancelInvoice()
+        'Dim client = New HttpClient()
+        'Dim queryString = HttpUtility.ParseQueryString(String.Empty)
+        'client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
+        'client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+        'queryString("mark") = "400000020235191" ' "{string}"
+        ''  queryString("nextPartitionKey") = "{string}"
+        ''   queryString("nextRowKey") = "{string}"
+        '' Dim uri = "https://mydata-dev.azure-api.net/RequestIssuerInvoices?" & queryString.ToString
+        'Dim uri As String = "https://mydata-dev.azure-api.net/CancelInvoice?" & queryString.ToString
+        'Dim response = Await client.PostAsync(uri, "")
+        'Dim result = Await response.Content.ReadAsStringAsync()
+        'TextBox2.Text = result.ToString
+
+        'Dim MF = "c:\txtfiles\apantCancInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+        'FileOpen(1, MF, OpenMode.Output)
+        'PrintLine(1, result.ToString)
+        'FileClose(1)
+
+
+
+        Dim client = New HttpClient()
+        'Dim queryString = HttpUtility.ParseQueryString(String.Empty)
+        Try
+            client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+
+            Dim uri = "https://mydata-dev.azure-api.net/CancelInvoice?mark=400000020235194"   ' 400000020235191" ' + queryString.ToString
+
+            Dim response As HttpResponseMessage
+            Dim xl = XDocument.Load("c:\txtfiles\canc.xml").ToString ' "--> εκει έχω αποθηκεύσει το xml που εφτιαξα"
+            Dim byteData As Byte() = Encoding.UTF8.GetBytes(xl)
+
+            Using content = New ByteArrayContent(byteData)
+                content.Headers.ContentType = New MediaTypeHeaderValue("application/xml")
+                response = Await client.PostAsync(uri, content)
+                Dim result = Await response.Content.ReadAsStringAsync()
+                Dim MF = "c:\txtfiles\apantSendInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+                FileOpen(1, MF, OpenMode.Output)
+                PrintLine(1, result.ToString)
+                FileClose(1)
+                TextBox2.Text = result.ToString
+                ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
+                'Dim byteData2 As Byte() = File.ReadAllBytes("c:\txtfiles\inv.xml")
+                ' sept 2020 debug   Rename("c:\txtfiles\inv.xml", "c:\txtfiles\inv" + Format(Now, "yyyyddMMHHmm") + ".xml")
+                FileCopy(MF, "c:\txtfiles\apantSendInv.XML")
+
+            End Using
+
+
+        Catch ex As Exception
+            MsgBox(ex.ToString)
+        End Try
+
+
+
+
+    End Sub
+
+    Private Sub RequestTransmittedDocs_Click(sender As Object, e As EventArgs) Handles RequestTransmittedDocs.Click
+
+        '
+
+        MakeRequest3()
+
+
+    End Sub
+
+    Private Async Sub MakeRequest3() ' RequestTransmittedDocs_Click
+        Dim client = New HttpClient()
+        Dim queryString = HttpUtility.ParseQueryString(String.Empty)
+        client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
+        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+        queryString("mark") = "1000000006337" ' "{string}"
+        '  queryString("nextPartitionKey") = "{string}"
+        '   queryString("nextRowKey") = "{string}"
+        Dim uri = "https://mydata-dev.azure-api.net/RequestTransmittedDocs?" & queryString.ToString
+        Dim response = Await client.GetAsync(uri)
+        Dim result = Await response.Content.ReadAsStringAsync()
+        TextBox2.Text = result.ToString
+        Dim MF = "c:\txtfiles\apantReqInv2" + Format(Now, "yyyyddMMHHmm") + ".xml"
+        FileOpen(1, MF, OpenMode.Output)
+        PrintLine(1, result.ToString)
+        FileClose(1)
+    End Sub
+
 End Class
