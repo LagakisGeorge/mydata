@@ -116,7 +116,7 @@ Public Class Form1
                 TextBox2.Text = result.ToString
                 ' "είναι το textbox πανω στη φόρμα που σου επιστρέφει το response xml"
 
-                Dim MF = "c:\txtfiles\ApantIncome" + Format(Now, "yyyyddMMHHmm") + ".xml"
+                Dim MF = "c:\txtfiles\incomes\ApantIncome" + Format(Now, "yyyyddMMHHmm") + ".xml"
                 FileOpen(1, MF, OpenMode.Output)
                 PrintLine(1, result.ToString)
                 FileClose(1)
@@ -278,7 +278,16 @@ Public Class Form1
 
 
     End Function
+    Function FindTRP(C As String) As String
+        Dim sqlDT4 As New DataTable
+        ExecuteSQLQuery("select N1 from PINAKES where TYPOS=12 AND  AYJON=" + C + "", sqlDT4)
+        If IsDBNull(sqlDT4(0)(0)) Then
+            FindTRP = ""
+        Else
+            FindTRP = sqlDT4(0)(0).ToString
+        End If
 
+    End Function
 
 
 
@@ -390,7 +399,7 @@ Public Class Form1
         SYNT = ""
         SQL = "SELECT  ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
         SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
-        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7 "
+        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7,TRP "
 
         SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
         SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' OR INCMARK IS NULL OR INCMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
@@ -518,7 +527,13 @@ Public Class Form1
             '----------------------------------------------- paymentMethods
             writer.WriteStartElement("paymentMethods")
             writer.WriteStartElement("paymentMethodDetails")
-            crNode("type", "3", writer)
+            Dim cTrp As String = FindTRP(Mid(sqlDT(i)("TRP"), 1, 1))
+            If Len(cTrp) = 0 Then
+                MsgBox("ΔΕΝ ΕΧΩ ΑΝΤΙΣΤΟΙΧΙΣΗ ΣΤΟΝ ΤΡΟΠΟ ΠΛΗΡΩΜΗΣ " + sqlDT(i)("TRP"))
+                writer.Close()
+                Exit Function
+            End If
+            crNode("type", cTrp, writer)
             crNode("amount", Format(sumNet + sumFpa, "######0.##"), writer)   '  crNode("aa", "15", writer)
 
             writer.WriteEndElement() ' /paymentMethodDetails
