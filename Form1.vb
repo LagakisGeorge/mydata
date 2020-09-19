@@ -456,7 +456,7 @@ Public Class Form1
 
             writer.WriteComment(sqlDT(i)("ATIM") + " " + Format(sqlDT(i)("HME"), "dd/MM/yyyy"))
             writer.WriteStartElement("invoice")
-            'crNode("uid", "", writer)
+            crNode("uid", Str(i + 1), writer)
             'crNode("mark", "", writer)
 
 
@@ -902,17 +902,17 @@ Public Class Form1
         Dim SuccessCounter = 0
         Dim cSuccessCounter As String = "0"
         Dim line As Integer
-        Dim entityUid As String
-        Dim entityMark As String
+        Dim invoiceUid As String
+        Dim invoiceMark As String
         For Each node As XmlNode In nodes
             Dim Status As String = node.SelectSingleNode("statusCode").InnerText
             Dim merror As String
-            line = node.SelectSingleNode("entitylineNumber").InnerText
+            line = node.SelectSingleNode("index").InnerText
 
 
             If Status = "Success" Then
-                entityUid = node.SelectSingleNode("entityUid").InnerText
-                entityMark = node.SelectSingleNode("entityMark").InnerText
+                invoiceUid = node.SelectSingleNode("invoiceUid").InnerText
+                invoiceMark = node.SelectSingleNode("invoiceMark").InnerText
                 SuccessCounter = SuccessCounter + 1
                 cSuccessCounter = Str(SuccessCounter)
                 'ΑΝ ΕΧΕΙ ΑΠΟΣΤΑΛΕΙ ΤΟ ΤΙΜΟΛΟΓΙΟ ΜΕ ΕΠΙΤΥΧΙΑ ΠΑΙΡΝΩ ΤΗΝ ΕΥΚΑΙΡΙΑ
@@ -926,7 +926,7 @@ Public Class Form1
                 writer.WriteComment(temp(0)("ATIM") + " " + Format(temp(0)("HME"), "dd/MM/yyyy"))
 
                 writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
-                crNode("mark", entityMark, writer)
+                crNode("invoiceMark", invoiceMark, writer)
 
                 For L As Integer = 0 To EGGTIM.Rows.Count - 1
 
@@ -942,13 +942,13 @@ Public Class Form1
                 Next
                 writer.WriteEndElement() ' incomeInvoiceClassification---------------------
 
-            Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.entityUid
-                entityUid = node.SelectSingleNode("errors/error/message").InnerText
-                entityMark = "ERROR"
+            Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.invoiceUid
+                invoiceUid = node.SelectSingleNode("errors/error/message").InnerText
+                invoiceMark = "ERROR"
                 cSuccessCounter = "0"
             End If
 
-            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(entityUid, 1, 40) + "' , ENTITYMARK='" + Mid(entityMark, 1, 13) + "',ENTLINEN=" + cSuccessCounter + "  WHERE ENTITY=" + Str(line))
+            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(invoiceUid, 1, 40) + "' , ENTITYMARK='" + Mid(invoiceMark, 1, 13) + "',ENTLINEN=" + cSuccessCounter + "  WHERE ENTITY=" + Str(line))
 
 
         Next
