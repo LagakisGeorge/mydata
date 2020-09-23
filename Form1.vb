@@ -29,6 +29,9 @@ Public Class Form1
     Public gSQLCon As String
     Public sqlDT As New DataTable
     Public sqlDT2 As New DataTable
+
+
+
     ' Public Property HttpUtility As Object
     '  SELECT ENTITY ,ATIM,ENTITYUID,ENTITYMARK ,HME FROM TIM WHERE ENTITY>0 ORDER BY ENTITY'
 
@@ -441,9 +444,19 @@ Public Class Form1
 
 
         For i = 0 To sqlDT.Rows.Count - 1
+
+
+
+            If checkIntegrity(i) = False Then
+
+                MsgBox(" ΠΡΟΒΛΗΜΑ ΣΤΟ ΠΑΡΑΣΤΑΤΙΚΟ " + sqlDT(0)("ATIM").ToString)
+            End If
+
+
+
             Dim EGGTIM As New DataTable
             Me.Text = "ΠΑΡΑΣΤΑΤΙΚΑ " + Str(i)
-            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA FROM EGGTIM WHERE TIMM<>0 AND POSO<>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
+            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA,ISNULL(KAU_AJIA,0) AS KAU_AJIA,ISNULL(MIK_AJIA,0) AS MIK_AJIA FROM EGGTIM WHERE TIMM<>0 AND POSO<>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
             Dim DUM As New DataTable
             ExecuteSQLQuery("UPDATE TIM SET ENTITY=" + Str(i + 1) + " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
 
@@ -487,13 +500,13 @@ Public Class Form1
                 ' End If
                 writer.WriteStartElement("counterpart")
                 crNode("vatNumber", Trim(sqlDT(i)("AFM")), writer)  ' crNode("vatNumber", "026677115", writer)
-            crNode("country", "GR", writer)
-            crNode("branch", "0", writer)
-            writer.WriteStartElement("address")
-            crNode("postalCode", """66100""", writer)  'crNode("postalCode", """66100""", writer)
-            crNode("city", sqlDT(i)("POL"), writer)  ' crNode("city", """ΔΡΑΜΑ""", writer)
-            writer.WriteEndElement() ' /address
-            writer.WriteEndElement() ' /counterpart
+                crNode("country", "GR", writer)
+                crNode("branch", "0", writer)
+                writer.WriteStartElement("address")
+                crNode("postalCode", """66100""", writer)  'crNode("postalCode", """66100""", writer)
+                crNode("city", sqlDT(i)("POL"), writer)  ' crNode("city", """ΔΡΑΜΑ""", writer)
+                writer.WriteEndElement() ' /address
+                writer.WriteEndElement() ' /counterpart
             End If
 
 
@@ -550,7 +563,7 @@ Public Class Form1
                 If IsDBNull(EGGTIM(L)("TIMM")) Then
                     AJ = 0
                 Else
-                    AJ = Math.Round(EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100), 2)
+                    AJ = EGGTIM(L)("KAU_AJIA")  ' Math.Round(EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100), 2)
                 End If
 
                 Dim VAT As String
@@ -568,7 +581,7 @@ Public Class Form1
                 If EGGTIM(L)("FPA") = 1 Then '13%
                     VAT = "2"
                     SYN_KAU = SYN_KAU + AJ
-                    fpaRow = AJ * 0.13
+                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA") ' AJ * 0.13
                     SYN_FPA = SYN_FPA + fpaRow
 
                     'ElseIf EGGTIM(L)("FPA") = 2 Then
@@ -576,7 +589,7 @@ Public Class Form1
                 ElseIf EGGTIM(L)("FPA") = 2 Then
                     VAT = "1"
                     SYN_KAU = SYN_KAU + AJ
-                    fpaRow = AJ * 0.24
+                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA") 'AJ * 0.24
                     SYN_FPA = SYN_FPA + fpaRow
 
                     ' SYN_FPA = SYN_FPA + AJ * 0.24
@@ -585,13 +598,14 @@ Public Class Form1
                     VAT = "7"
                     SYN_KAU = SYN_KAU + AJ
                     fpaRow = 0
+                    SYN_FPA = SYN_FPA + fpaRow
 
                 ElseIf EGGTIM(L)("FPA") = 6 Then
                     VAT = "1"
                     SYN_KAU = SYN_KAU + AJ
                     ' SYN_FPA = SYN_FPA + AJ * 0.24
 
-                    fpaRow = AJ * 0.24
+                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA")  ' AJ * 0.24
                     SYN_FPA = SYN_FPA + fpaRow
 
 
@@ -600,7 +614,7 @@ Public Class Form1
                 ElseIf EGGTIM(L)("FPA") = 4 Then
                     VAT = "4"
                     SYN_KAU = SYN_KAU + AJ
-                    fpaRow = AJ * 0.06
+                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA")  ' AJ * 0.06
                     SYN_FPA = SYN_FPA + fpaRow
                 Else ' If EGGTIM(L)("FPA") = 2 Then
                     VAT = "1"
@@ -633,18 +647,18 @@ Public Class Form1
                 writer.WriteEndElement()   ' /invoiceDetails
             Next
 
-            ExecuteSQLQuery("UPDATE TIM SET AADEKAU=" + Replace(Format(SYN_KAU, "#######.#####"), ",", ".") + ",AADEFPA=" + Replace(Format(SYN_FPA, "#######.#####"), ",", ".") +
+            ExecuteSQLQuery("UPDATE TIM SET AADEKAU=" + Replace(Format(SYN_KAU, "######0.#####"), ",", ".") + ",AADEFPA=" + Replace(Format(SYN_FPA, "######0.#####"), ",", ".") +
                             " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
             '------------------------------------------------ InvoiceSummary 
             writer.WriteStartElement("invoiceSummary")
-            crNode("totalNetValue", Format(SYN_KAU, "#######.##"), writer)  ' crNode("totalNetValue", "100", writer)
-            crNode("totalVatAmount", Format(SYN_FPA, "#######.##"), writer)  '  crNode("totalVatAmount", "24", writer)
+            crNode("totalNetValue", Format(SYN_KAU, "######0.##"), writer)  ' crNode("totalNetValue", "100", writer)
+            crNode("totalVatAmount", Format(SYN_FPA, "######0.##"), writer)  '  crNode("totalVatAmount", "24", writer)
             crNode("totalWithheldAmount", "0", writer)
             crNode("totalFeesAmount", "0", writer)
             crNode("totalStampDutyAmount", "0", writer)
             crNode("totalOtherTaxesAmount", "0", writer)
             crNode("totalDeductionsAmount", "0", writer)
-            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "#######.##"), writer)
+            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "######0.##"), writer)
 
 
             writer.WriteStartElement("incomeClassification")
@@ -707,7 +721,148 @@ Public Class Form1
 
     End Function
 
+    Private Function checkIntegrity(I As Long) As Boolean
+        Dim S_AJ As Double = sqlDT(I)("aj1") + sqlDT(I)("aj2") + sqlDT(I)("aj3") + sqlDT(I)("aj4") + sqlDT(I)("aj5") + sqlDT(I)("aj6") + sqlDT(I)("aj7")
+        Dim S_FPA As Double = sqlDT(I)("fpa1") + sqlDT(I)("fpa2") + sqlDT(I)("FPA3") + sqlDT(I)("FPA4") + sqlDT(I)("FPA6") + sqlDT(I)("FPA7")
+        Dim DIFF As Double = sqlDT(I)("aji") - (S_AJ + S_FPA)
+        If DIFF = 0 Then
+            'OK
+        ElseIf Math.Abs(DIFF) < 0.05 Then ' ΕΧΟΥΝ ΜΙΚΡΗ ΔΙΑΦΟΡΑ ΚΑΙ ΤΗΝ ΚΑΛΥΠΤΩ ΑΛΛΑΖΟΝΤΑ ΤΟ AJI
+            Dim DUM As New DataTable
+            ExecuteSQLQuery("UPDATE TIM SET AJI=AJI+" + Replace(Str(DIFF), ",", ".") + "   WHERE ID_NUM=" + sqlDT(I)("ID_NUM").ToString, DUM)
+        Else
+            ' Dim DUM As New DataTable
+            ' ExecuteSQLQuery("SELECT SUM(POSO*TIMM*(100-EKPT)/100)   WHERE ID_NUM=" + sqlDT(I)("ID_NUM").ToString, DUM)
+            checkIntegrity = False
+            Exit Function
+        End If
 
+        '    Dim DUM150 As New DataTable
+        ' ExecuteSQLQuery("UPDATE EGGTIM 
+        '        SET MIK_AJIA=ROUND(POSO*TIMM*(100-EKPT)/100*1.24,2)
+        '     ,KAU_AJIA=ROUND(POSO*TIMM*(100-EKPT)/100,2)  ", DUM150)
+
+
+
+
+
+        Dim DUM10 As New DataTable
+        ExecuteSQLQuery("SELECT SUM(KAU_AJIA) AS KAU,SUM(MIK_AJIA) AS MIK,
+             SUM(CASE WHEN FPA=1 THEN KAU_AJIA ELSE 0 END ) AS KAU1,
+             SUM(CASE WHEN FPA=2 THEN KAU_AJIA ELSE 0 END ) AS KAU2,
+             SUM(CASE WHEN FPA=3 THEN KAU_AJIA ELSE 0 END ) AS KAU3,
+             SUM(CASE WHEN FPA=4 THEN KAU_AJIA ELSE 0 END ) AS KAU4,
+             SUM(CASE WHEN FPA=5 THEN KAU_AJIA ELSE 0 END ) AS KAU5,
+             SUM(CASE WHEN FPA=6 THEN KAU_AJIA ELSE 0 END ) AS KAU6,
+             SUM(CASE WHEN FPA=7 THEN KAU_AJIA ELSE 0 END ) AS KAU7,
+             SUM(CASE WHEN FPA=1 THEN MIK_AJIA ELSE 0 END ) AS MIK1,
+             SUM(CASE WHEN FPA=2 THEN MIK_AJIA ELSE 0 END ) AS MIK2,
+             SUM(CASE WHEN FPA=3 THEN MIK_AJIA ELSE 0 END ) AS MIK3,
+             SUM(CASE WHEN FPA=4 THEN MIK_AJIA ELSE 0 END ) AS MIK4,
+             SUM(CASE WHEN FPA=5 THEN MIK_AJIA ELSE 0 END ) AS MIK5,
+             SUM(CASE WHEN FPA=6 THEN MIK_AJIA ELSE 0 END ) AS MIK6,
+             SUM(CASE WHEN FPA=7 THEN MIK_AJIA ELSE 0 END ) AS MIK7
+             FROM EGGTIM    WHERE ID_NUM=" + sqlDT(I)("ID_NUM").ToString, DUM10)
+
+        'ΚΑΘΑΡΕΣ ΑΞΙΕΣ ΕΛΕΓΧΟΣ
+        If DUM10(0)("KAU") = S_AJ Then 'OK   SYMFVNEI Η ΚΑΘΑΡΗ ΑΞΙΑ
+            'OK
+
+
+        Else ' ΚΑΛΥΠΤΩ ΤΗΝ ΔΙΑΦΟΡΑ EGGTIM - TIM ΑΝΑ ΦΠΑ
+            If Math.Abs(sqlDT(I)("aj1") - DUM10(0)("KAU1")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj1") - DUM10(0)("KAU1")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=1 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj2") - DUM10(0)("KAU2")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj2") - DUM10(0)("KAU2")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=2 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj3") - DUM10(0)("KAU3")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj3") - DUM10(0)("KAU3")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=3 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj4") - DUM10(0)("KAU4")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj4") - DUM10(0)("KAU4")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=4 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj5") - DUM10(0)("KAU5")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj5") - DUM10(0)("KAU5")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=5 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj6") - DUM10(0)("KAU6")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj6") - DUM10(0)("KAU6")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=6 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj7") - DUM10(0)("KAU7")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj7") - DUM10(0)("KAU7")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=7 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET KAU_AJIA=KAU_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+        End If
+
+        'ΚΑΘΑΡΕΣ MIKTES ΑΞΙΕΣ ΕΛΕΓΧΟΣ
+        If DUM10(0)("MIK") = S_AJ + S_FPA Then 'OK   SYMFVNEI Η ΑΞΙΑ ME FPA
+            'OK
+
+
+        Else ' ΚΑΛΥΠΤΩ ΤΗΝ ΔΙΑΦΟΡΑ EGGTIM - TIM ΑΝΑ ΦΠΑ
+            If Math.Abs(sqlDT(I)("aj1") + sqlDT(I)("FPA1") - DUM10(0)("MIK1")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj1") + sqlDT(I)("FPA1") - DUM10(0)("MIK1")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=1 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET MIK_AJIA=MIK_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj2") + sqlDT(I)("FPA2") - DUM10(0)("MIK2")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj2") + sqlDT(I)("FPA2") - DUM10(0)("MIK2")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=2 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET MIK_AJIA=MIK_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj3") + sqlDT(I)("FPA3") - DUM10(0)("MIK3")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj3") + sqlDT(I)("FPA3") - DUM10(0)("MIK3")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=3 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET MIK_AJIA=MIK_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj4") + sqlDT(I)("FPA4") - DUM10(0)("MIK4")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj4") + sqlDT(I)("FPA4") - DUM10(0)("MIK4")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=4 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET MIK_AJIA=MIK_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+            If Math.Abs(sqlDT(I)("aj6") + sqlDT(I)("FPA6") - DUM10(0)("MIK6")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj6") + sqlDT(I)("FPA6") - DUM10(0)("MIK6")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=6 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET MIK_AJIA=MIK_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+
+            If Math.Abs(sqlDT(I)("aj7") + sqlDT(I)("FPA7") - DUM10(0)("MIK7")) > 0.005 Then
+                Dim DUM111 As New DataTable
+                Dim DIFF1 = sqlDT(I)("aj7") + sqlDT(I)("FPA7") - DUM10(0)("MIK7")
+                ExecuteSQLQuery("SELECT * FROM EGGTIM    WHERE FPA=7 AND ID_NUM=" + sqlDT(I)("ID_NUM").ToString + "ORDER BY KAU_AJIA DESC", DUM111)
+                ExecuteSQLQuery("UPDATE EGGTIM SET MIK_AJIA=MIK_AJIA+" + Replace(Str(DIFF1), ",", ".") + " WHERE ID=" + DUM111(0)("ID").ToString, DUM111)
+            End If
+
+        End If
+
+        checkIntegrity = True
+
+    End Function
 
     Private Sub Test()
         Dim objWorkingXML As New System.Xml.XmlDocument
@@ -823,8 +978,12 @@ Public Class Form1
             Else
                 MsgBox("Error : " & ex.Message)
             End If
-            MsgBox("Error No. " & Err.Number & " Invalid database or no database found !! Adjust settings first", MsgBoxStyle.Critical, "Sales And Inventory")
-            MsgBox(SQLQuery)
+            ERROR_WRITE(Format(Now, "dd/MM/yy") + "Error No. " & Err.Number & " Invalid database or no database found !! Adjust settings first")
+            ERROR_WRITE(SQLQuery)
+            'MsgBox(SQLQuery)
+            End
+
+
         End Try
         Return sqlDT
     End Function
@@ -853,6 +1012,10 @@ Public Class Form1
             End If
             MsgBox("Error No. " & Err.Number & " Invalid database or no database found !! Adjust settings first", MsgBoxStyle.Critical, "Sales And Inventory")
             MsgBox(SQLQuery)
+            ERROR_WRITE(Format(Now, "dd/MM/yy") + "Error No. " & Err.Number & " Invalid database or no database found !! Adjust settings first")
+            ERROR_WRITE(SQLQuery)
+            End
+
         End Try
         'Return sqlDT
     End Sub
@@ -1369,5 +1532,20 @@ Public Class Form1
         PrintLine(1, result.ToString)
         FileClose(1)
     End Sub
+
+
+    Private Sub ERROR_WRITE(CCC As String)
+        Dim objStreamWriter As StreamWriter
+        'Pass the file path and the file name to the StreamWriter constructor.
+        Dim C As String
+        objStreamWriter = New StreamWriter("C:\TXTFILES\ERRORS.TXT", True, System.Text.Encoding.Default)
+        objStreamWriter.WriteLine(CCC)
+        objStreamWriter.Close()
+    End Sub
+
+
+
+
+
 
 End Class
