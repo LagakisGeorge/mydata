@@ -7,6 +7,7 @@ Imports System.Data.OleDb
 Imports System.Xml.Schema
 Imports System.Data.SqlClient
 Imports System.Web
+Imports System.CodeDom.Compiler
 'Imports System.Net.Http.Headers
 'Imports System.Text
 'Imports System.Net.Http
@@ -402,12 +403,12 @@ Public Class Form1
         SYNT = ""
         SQL = "SELECT  ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
         SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
-        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7,TRP "
+        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7,TRP,APALAGIFPA "
 
         SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
-        SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' OR INCMARK IS NULL OR INCMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
+        SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
         SQL = SQL + "  AND AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7>0  " + SYNT
-        SQL = SQL + " order by HME"
+        SQL = SQL + " order by HME"       '  OR INCMARK IS NULL OR INCMARK='ERROR'
 
 
 
@@ -442,7 +443,7 @@ Public Class Form1
         Dim sumFpa As Single
         Dim ctypos As String
 
-
+        '======================================= ΠΕΡΠΑΤΑΩ ΤΟ ΤΙΜ ====================================
         For i = 0 To sqlDT.Rows.Count - 1
 
 
@@ -557,6 +558,8 @@ Public Class Form1
             SYN_KAU = 0
             SYN_FPA = 0
             Dim fpaRow As Double
+
+            '======================================= ΠΕΡΠΑΤΑΩ ΤΟ EGGΤΙΜ ====================================
             For L As Integer = 0 To EGGTIM.Rows.Count - 1
 
                 Dim AJ As Single
@@ -630,12 +633,38 @@ Public Class Form1
 
                 crNode("vatAmount", Format(fpaRow, "######0.##"), writer)  ' c
 
+                If fpaRow = 0 Then
+
+                    crNode("vatExemptionCategory", "1", writer) 'APALAGIFPA
+
+                End If
+
                 writer.WriteStartElement("incomeClassification")
                 crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
                 crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
                 crNode("N1:amount", Format(AJ, "######0.##"), writer)
 
                 writer.WriteEndElement() '/incomeClassification
+
+
+
+
+
+                '                <invoiceDetails>
+                '  <lineNumber> 1</lineNumber>
+                '  <netValue>1185</netValue>
+                '  <vatCategory>7</vatCategory>
+                '  <vatAmount>0</vatAmount>
+                '<vatExemptionCategory>1</vatExemptionCategory>
+                '  <incomeClassification>
+                '    <N1:classificationType> E3_561_001</N1:classificationType>
+                '    <N1:classificationCategory>category1_1</N1:classificationCategory>
+                '    <N1:amount> 1185</N1:amount>
+                '  </incomeClassification>
+
+                '</invoiceDetails>
+
+
 
                 '            	<incomeClassification>
                 '<N1:classificationType> E3_561_001</N1:classificationType>
@@ -932,7 +961,7 @@ Public Class Form1
             ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'AADEKAU') IS  NULL  BEGIN; ALTER TABLE TIM ADD AADEKAU FLOAT NULL;END")
             ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITY') IS  NULL  BEGIN;  ALTER TABLE TIM ADD ENTITY  INT NULL;END")
             ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITYUID') IS  NULL  BEGIN;  ALTER TABLE TIM ADD ENTITYUID VARCHAR(40) NULL;END")
-            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITYMARK') IS  NULL  BEGIN; ALTER TABLE TIM ADD ENTITYMARK VARCHAR(13) NULL;END")
+            ExecuteSQLQuery("IF COL_LENGTH('dbo.TIM', 'ENTITYMARK') IS  NULL  BEGIN; ALTER TABLE TIM ADD ENTITYMARK VARCHAR(18) NULL;END")
 
         End If
     End Sub
@@ -1061,15 +1090,15 @@ Public Class Form1
 
         ' ΕΔΩ ΔΗΜΙΟΥΡΓΩ ΤΟ INCOME ΑΡΧΕΙΟ ΜΕ ΠΡΟΣΔΙΟΡΙΣΜΟ ΤΗΣ ΚΑΘΕ ΕΓΓΡΑΦΗΣ
 
-        Dim ff As String = "c:\txtfiles\inC.xml"  'c:\mercvb\m" + Format(Now, "yyyyddmmHHMM") + ".export" ' "\\Logisthrio\333\pr.export" '
-        Dim writer As New XmlTextWriter(ff, System.Text.Encoding.UTF8)
-        writer.WriteStartDocument(True)
-        writer.Formatting = Formatting.Indented
-        writer.Indentation = 2
-        writer.WriteStartElement("IncomeClassificationsDoc")
-        writer.WriteAttributeString("xmlns", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")
-        writer.WriteAttributeString("xsi:schemaLocation", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0 schema.xsd")
-        writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        'Dim ff As String = "c:\txtfiles\inC.xml"  'c:\mercvb\m" + Format(Now, "yyyyddmmHHMM") + ".export" ' "\\Logisthrio\333\pr.export" '
+        'Dim writer As New XmlTextWriter(ff, System.Text.Encoding.UTF8)
+        'writer.WriteStartDocument(True)
+        'writer.Formatting = Formatting.Indented
+        'writer.Indentation = 2
+        'writer.WriteStartElement("IncomeClassificationsDoc")
+        'writer.WriteAttributeString("xmlns", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0")
+        'writer.WriteAttributeString("xsi:schemaLocation", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0 schema.xsd")
+        'writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
 
 
@@ -1087,7 +1116,7 @@ Public Class Form1
             Dim merror As String
             line = node.SelectSingleNode("index").InnerText
 
-
+            Dim temp As New DataTable
             If Status = "Success" Then
                 invoiceUid = node.SelectSingleNode("invoiceUid").InnerText
                 invoiceMark = node.SelectSingleNode("invoiceMark").InnerText
@@ -1095,44 +1124,45 @@ Public Class Form1
                 cSuccessCounter = Str(SuccessCounter)
                 'ΑΝ ΕΧΕΙ ΑΠΟΣΤΑΛΕΙ ΤΟ ΤΙΜΟΛΟΓΙΟ ΜΕ ΕΠΙΤΥΧΙΑ ΠΑΙΡΝΩ ΤΗΝ ΕΥΚΑΙΡΙΑ
                 'ΝΑ ΣΤΕΙΛΩ ΚΑΙ ΤΟΝ ΤΥΠΟ ΤΟΥ ΕΣΟΔΟΥ
-                Dim temp As New DataTable
+
                 ExecuteSQLQuery("select AADEKAU,ID_NUM,ATIM,HME FROM TIM   WHERE ENTITY=" + Str(line), temp)
 
                 Dim EGGTIM As New DataTable
                 ExecuteSQLQuery("select round(POSO*TIMM*(100-EKPT)/100,2) AS AJ FROM EGGTIM   WHERE POSO*TIMM<>0 AND ID_NUM=" + Str(temp(0)(1)), EGGTIM)
 
-                writer.WriteComment(temp(0)("ATIM") + " " + Format(temp(0)("HME"), "dd/MM/yyyy"))
+                ' writer.WriteComment(temp(0)("ATIM") + " " + Format(temp(0)("HME"), "dd/MM/yyyy"))
 
-                writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
-                crNode("invoiceMark", invoiceMark, writer)
+                ' writer.WriteStartElement("incomeInvoiceClassification") '---------------------------
+                'crNode("invoiceMark", invoiceMark, writer)
 
                 For L As Integer = 0 To EGGTIM.Rows.Count - 1
 
-                    writer.WriteStartElement("invoicesIncomeClassificationDetails") '====
-                    crNode("lineNumber", Str(L + 1), writer)
-                    writer.WriteStartElement("incomeClassificationDetailData") '***
-                    crNode("classificationType", "101", writer)
-                    crNode("classificationCategory", "1", writer)
-                    crNode("amount", Format(EGGTIM(L)(0), "#####0.#####"), writer)
-                    writer.WriteEndElement() 'incomeClassificationDetailData    '****
-                    writer.WriteEndElement() ' invoicesIncomeClassificationDetails   ======
+                    '   writer.WriteStartElement("invoicesIncomeClassificationDetails") '====
+                    '  crNode("lineNumber", Str(L + 1), writer)
+                    ' writer.WriteStartElement("incomeClassificationDetailData") '***
+                    ' crNode("classificationType", "101", writer)
+                    ' crNode("classificationCategory", "1", writer)
+                    ' crNode("amount", Format(EGGTIM(L)(0), "#####0.#####"), writer)
+                    ' writer.WriteEndElement() 'incomeClassificationDetailData    '****
+                    ' writer.WriteEndElement() ' invoicesIncomeClassificationDetails   ======
 
                 Next
-                writer.WriteEndElement() ' incomeInvoiceClassification---------------------
+                'writer.WriteEndElement() ' incomeInvoiceClassification---------------------
 
             Else 'ΕΧΕΙ ΛΑΘΟΣ ΟΠΟΤΕ ΑΠΟΘΗΚΕΥΩ ΤΟ ΛΑΘΟΣ ΣΤΟ ΤΙΜ.invoiceUid
                 invoiceUid = node.SelectSingleNode("errors/error/message").InnerText
                 invoiceMark = "ERROR"
                 cSuccessCounter = "0"
+                MsgBox("ΛΑΘΟΣ ΣΤΗΝ ΑΠΟΣΤΟΛΗ ΣΤΟ ΤΙΜΟΛΟΓΙΟ " + temp(0)(1)("ATIM"))
             End If
 
-            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(invoiceUid, 1, 40) + "' , ENTITYMARK='" + Mid(invoiceMark, 1, 13) + "',ENTLINEN=" + cSuccessCounter + "  WHERE ENTITY=" + Str(line))
+            ExecuteSQLQuery("update TIM SET ENTITYUID='" + Mid(invoiceUid, 1, 40) + "' , ENTITYMARK='" + Mid(invoiceMark, 1, 16) + "',ENTLINEN=" + cSuccessCounter + "  WHERE ENTITY=" + Str(line))
 
 
         Next
 
-        writer.WriteEndDocument()
-        writer.Close()
+        'writer.WriteEndDocument()
+        'writer.Close()
 
     End Sub
 
@@ -1423,6 +1453,7 @@ Public Class Form1
 
         Dim I As Integer = ToXMLsub()
         If I = 0 Then
+            MsgBox("ΔΕΝ ΕΓΙΝΕ ΑΠΟΣΤΟΛΗ")
             Exit Sub
         End If
         Threading.Thread.Sleep(5000)
@@ -1431,12 +1462,12 @@ Public Class Form1
         Threading.Thread.Sleep(5000)
         MsgBox("2.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
         UpdateTim()
-        Threading.Thread.Sleep(5000)
-        MakeIncomeRequest()
-        MsgBox("3.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
-        Threading.Thread.Sleep(5000)
-        UpdApantIncome()
-        MsgBox("4.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
+        'Threading.Thread.Sleep(5000)
+        'MakeIncomeRequest()
+        'MsgBox("3.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
+        'Threading.Thread.Sleep(5000)
+        'UpdApantIncome()
+        'MsgBox("4.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
     End Sub
 
     Private Sub CancInv_Click(sender As Object, e As EventArgs) Handles CancInv.Click
