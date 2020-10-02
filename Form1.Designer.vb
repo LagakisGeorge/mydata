@@ -53,10 +53,10 @@ Partial Class Form1
         '
         'TextBox2
         '
-        Me.TextBox2.Location = New System.Drawing.Point(12, 200)
+        Me.TextBox2.Location = New System.Drawing.Point(12, 109)
         Me.TextBox2.Multiline = True
         Me.TextBox2.Name = "TextBox2"
-        Me.TextBox2.Size = New System.Drawing.Size(862, 191)
+        Me.TextBox2.Size = New System.Drawing.Size(862, 282)
         Me.TextBox2.TabIndex = 1
         '
         'toXML
@@ -112,7 +112,7 @@ Partial Class Form1
         Me.ListBox2.FormattingEnabled = True
         Me.ListBox2.Location = New System.Drawing.Point(282, 60)
         Me.ListBox2.Name = "ListBox2"
-        Me.ListBox2.Size = New System.Drawing.Size(592, 134)
+        Me.ListBox2.Size = New System.Drawing.Size(592, 43)
         Me.ListBox2.TabIndex = 8
         '
         'Button2

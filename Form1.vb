@@ -30,6 +30,11 @@ Public Class Form1
     Public gSQLCon As String
     Public sqlDT As New DataTable
     Public sqlDT2 As New DataTable
+    Public gUserId As String
+    Public gSubKey As String
+
+
+
 
 
 
@@ -53,8 +58,8 @@ Public Class Form1
         Dim client = New HttpClient()
         'Dim queryString = HttpUtility.ParseQueryString(String.Empty)
         Try
-            client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+            client.DefaultRequestHeaders.Add("aade-user-id", gUserId) '"glagakis2")
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", gSubKey) ' "555bc57c80634243958f62b629316aaa")
 
             Dim uri = "https://mydata-dev.azure-api.net/SendInvoices" ' + queryString.ToString
 
@@ -149,18 +154,24 @@ Public Class Form1
 
         Dim par As String = ""
         Dim mf As String
-        mf = c   ' "c:\mercvb\err3.txt"
+        mf = c   ' "c:\mercvb\err3.txt"  If System.IO.File.Exists(SavePath) Then
         If Len(Dir(UCase(mf))) = 0 Then
             par = ":DELLAGAKIS\SQL17:sa:12345678:1:EMP"    '" 'G','g','Ξ','D'  "
             par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ", , par)
+            gUserId = InputBox("Χρήστης", gUserId)
+            gSubKey = InputBox("Κλειδί", gSubKey)
         Else
             FileOpen(1, mf, OpenMode.Input)
             '   Input(1, par)
             par = LineInput(1)
+            gUserId = LineInput(1)
+            gSubKey = LineInput(1)
             FileClose(1)
         End If
         If check_path = 1 Then
             par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ  (CONFIG.INI ΣΤΟΝ ΤΡΕΧΟΝΤΑ ΦΑΚΕΛΟ) ", ":Π.Χ. (local)\sql2012:sa:12345678:1:EMP", par)
+            gUserId = InputBox("Χρήστης", gUserId)
+            gSubKey = InputBox("Κλειδί", gSubKey)
         End If
 
         'Input = InputBox("Text:")
@@ -177,10 +188,21 @@ Public Class Form1
 
         FileOpen(1, mf, OpenMode.Output)
         PrintLine(1, par)
+        PrintLine(1, gUserId)
+        PrintLine(1, gSubKey)
+
         FileClose(1)
 
+        Dim A As String
+        If System.IO.File.Exists("DATES.TXT") Then
+            FileOpen(1, "DATES.TXT", OpenMode.Input)
+            A = LineInput(1)
+            ListBox2.Items.Add(A)
+            A = LineInput(1)
+            ListBox2.Items.Add(A)
 
 
+        End If
 
 
         ':(local)\sql2012:::2:EMP
@@ -1462,6 +1484,16 @@ Public Class Form1
         Threading.Thread.Sleep(5000)
         MsgBox("2.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
         UpdateTim()
+        MsgBox("3.ΕΝΗΜΕΡΩΘΗΚΕ Η ΒΑΣΗ")
+
+
+        FileOpen(1, "DATES.TXT", OpenMode.Output)
+        PrintLine(1, Format(APO.Value, "dd/MM/yyyy"))
+        PrintLine(1, Format(EOS.Value, "dd/MM/yyyy"))
+
+        FileClose(1)
+
+
         'Threading.Thread.Sleep(5000)
         'MakeIncomeRequest()
         'MsgBox("3.ΑΠΕΣΤΑΛΗΣΑΝ ΤΑ ΑΡΧΕΙΑ")
