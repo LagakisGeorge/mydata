@@ -44,9 +44,10 @@ Partial Class Form1
         '
         'Button1
         '
+        Me.Button1.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.Button1.Location = New System.Drawing.Point(12, 27)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(264, 28)
+        Me.Button1.Size = New System.Drawing.Size(311, 28)
         Me.Button1.TabIndex = 0
         Me.Button1.Text = "2.ΑΠΟΣΤΟΛΗ ΑΡΧΕΙΟΥ ΣΕ ΑΑΔΕ"
         Me.Button1.UseVisualStyleBackColor = True
@@ -61,9 +62,10 @@ Partial Class Form1
         '
         'toXML
         '
+        Me.toXML.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.toXML.Location = New System.Drawing.Point(12, 3)
         Me.toXML.Name = "toXML"
-        Me.toXML.Size = New System.Drawing.Size(264, 23)
+        Me.toXML.Size = New System.Drawing.Size(311, 23)
         Me.toXML.TabIndex = 2
         Me.toXML.Text = "1.ΔΗΜΙΟΥΡΓΙΑ ΑΡΧΕΙΟΥ XML ΓΙΑ ΑΠΟΣΤΟΛΗ"
         Me.toXML.UseVisualStyleBackColor = True
@@ -84,52 +86,56 @@ Partial Class Form1
         '
         'EditConnString
         '
-        Me.EditConnString.Location = New System.Drawing.Point(610, 4)
+        Me.EditConnString.Location = New System.Drawing.Point(880, 426)
         Me.EditConnString.Name = "EditConnString"
         Me.EditConnString.Size = New System.Drawing.Size(264, 23)
         Me.EditConnString.TabIndex = 4
         Me.EditConnString.Text = "opendatabase"
         Me.EditConnString.UseVisualStyleBackColor = True
+        Me.EditConnString.Visible = False
         '
         'APO
         '
+        Me.APO.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.APO.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
-        Me.APO.Location = New System.Drawing.Point(416, 3)
+        Me.APO.Location = New System.Drawing.Point(744, -1)
         Me.APO.Name = "APO"
-        Me.APO.Size = New System.Drawing.Size(130, 20)
+        Me.APO.Size = New System.Drawing.Size(130, 26)
         Me.APO.TabIndex = 5
         '
         'EOS
         '
+        Me.EOS.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.EOS.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
-        Me.EOS.Location = New System.Drawing.Point(416, 35)
+        Me.EOS.Location = New System.Drawing.Point(744, 31)
         Me.EOS.Name = "EOS"
-        Me.EOS.Size = New System.Drawing.Size(130, 20)
+        Me.EOS.Size = New System.Drawing.Size(130, 26)
         Me.EOS.TabIndex = 6
         '
         'ListBox2
         '
         Me.ListBox2.FormattingEnabled = True
-        Me.ListBox2.Location = New System.Drawing.Point(282, 60)
+        Me.ListBox2.Location = New System.Drawing.Point(329, 60)
         Me.ListBox2.Name = "ListBox2"
-        Me.ListBox2.Size = New System.Drawing.Size(592, 43)
+        Me.ListBox2.Size = New System.Drawing.Size(545, 43)
         Me.ListBox2.TabIndex = 8
         '
         'Button2
         '
-        Me.Button2.Location = New System.Drawing.Point(610, 33)
+        Me.Button2.Location = New System.Drawing.Point(880, 455)
         Me.Button2.Name = "Button2"
         Me.Button2.Size = New System.Drawing.Size(264, 22)
         Me.Button2.TabIndex = 9
         Me.Button2.Text = "check xml"
         Me.Button2.UseVisualStyleBackColor = True
+        Me.Button2.Visible = False
         '
         'UPDATE_TIM
         '
-        Me.UPDATE_TIM.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
+        Me.UPDATE_TIM.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
         Me.UPDATE_TIM.Location = New System.Drawing.Point(12, 60)
         Me.UPDATE_TIM.Name = "UPDATE_TIM"
-        Me.UPDATE_TIM.Size = New System.Drawing.Size(264, 35)
+        Me.UPDATE_TIM.Size = New System.Drawing.Size(311, 43)
         Me.UPDATE_TIM.TabIndex = 10
         Me.UPDATE_TIM.Text = "3.ΕΝΗΜΕΡΩΣΗ ΒΑΣΗΣ ΜΕ ΤΗΝ ΑΠΟΣΤΟΛΗ"
         Me.UPDATE_TIM.UseVisualStyleBackColor = True
@@ -148,9 +154,9 @@ Partial Class Form1
         Me.Button4.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(128, Byte), Integer), CType(CType(0, Byte), Integer))
         Me.Button4.Location = New System.Drawing.Point(915, 4)
         Me.Button4.Name = "Button4"
-        Me.Button4.Size = New System.Drawing.Size(161, 23)
+        Me.Button4.Size = New System.Drawing.Size(253, 23)
         Me.Button4.TabIndex = 12
-        Me.Button4.Text = "RequestInvoices"
+        Me.Button4.Text = "ΤΙΜΟΛΟΓΗΣΕΙΣ ΠΡΟΣ ΕΜΑΣ"
         Me.Button4.UseVisualStyleBackColor = False
         '
         'Button5
@@ -165,31 +171,33 @@ Partial Class Form1
         '
         'Button6
         '
-        Me.Button6.Location = New System.Drawing.Point(287, 5)
+        Me.Button6.BackColor = System.Drawing.Color.Lime
+        Me.Button6.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(161, Byte))
+        Me.Button6.Location = New System.Drawing.Point(329, 1)
         Me.Button6.Name = "Button6"
-        Me.Button6.Size = New System.Drawing.Size(117, 49)
+        Me.Button6.Size = New System.Drawing.Size(403, 54)
         Me.Button6.TabIndex = 14
-        Me.Button6.Text = "ολα μαζί"
-        Me.Button6.UseVisualStyleBackColor = True
+        Me.Button6.Text = "ΑΥΤΟΜΑΤΟΠΟΙΗΜΕΝΗ ΑΠΟΣΤΟΛΗ"
+        Me.Button6.UseVisualStyleBackColor = False
         '
         'CancInv
         '
         Me.CancInv.BackColor = System.Drawing.Color.Lime
         Me.CancInv.Location = New System.Drawing.Point(915, 84)
         Me.CancInv.Name = "CancInv"
-        Me.CancInv.Size = New System.Drawing.Size(161, 23)
+        Me.CancInv.Size = New System.Drawing.Size(253, 23)
         Me.CancInv.TabIndex = 15
-        Me.CancInv.Text = "CancelInvoice"
+        Me.CancInv.Text = "Ακύρωση Απεσταλμένου Παρ/κού"
         Me.CancInv.UseVisualStyleBackColor = False
         '
         'RequestTransmittedDocs
         '
         Me.RequestTransmittedDocs.BackColor = System.Drawing.Color.Lime
-        Me.RequestTransmittedDocs.Location = New System.Drawing.Point(915, 174)
+        Me.RequestTransmittedDocs.Location = New System.Drawing.Point(915, 192)
         Me.RequestTransmittedDocs.Name = "RequestTransmittedDocs"
-        Me.RequestTransmittedDocs.Size = New System.Drawing.Size(161, 46)
+        Me.RequestTransmittedDocs.Size = New System.Drawing.Size(253, 28)
         Me.RequestTransmittedDocs.TabIndex = 16
-        Me.RequestTransmittedDocs.Text = "RequestTransmittedDocs"
+        Me.RequestTransmittedDocs.Text = "ΤΙΜΟΛΟΓΗΣΕΙΣ ΣΕ ΤΡΙΤΟΥΣ"
         Me.RequestTransmittedDocs.UseVisualStyleBackColor = False
         '
         'Form1

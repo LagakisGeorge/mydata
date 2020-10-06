@@ -1,0 +1,31 @@
+Function aade_user_id()
+ aade_user_id = "aade-user-id"  
+End Function
+
+Function Ocp_Apim_Subscription()
+ Ocp_Apim_Subscription = "Ocp-Apim-Subscription-Key"
+End Function
+
+'XML_send = xml βάση προδιαγραφών
+
+Function POST_Aade_SendInvoices(XML_send As String, Optional ByRef str_response As String = "")
+On Error GoTo err
+    
+    Dim sUrl As String
+    sUrl = "https://mydata-dev.azure-api.net/SendInvoices"
+    Set objHTTP = CreateObject("Microsoft.XMLHTTP")
+    objHTTP.Open "POST", sUrl, False
+    objHTTP.setRequestHeader "aade-user-id", "" & aade_user_id() & ""
+    objHTTP.setRequestHeader "Ocp-Apim-Subscription-Key", "" & Ocp_Apim_Subscription() & ""
+    objHTTP.setRequestHeader "Accept", "application/x-hl7"
+    objHTTP.setRequestHeader "Content-Type", "application/xml"
+    objHTTP.Send (XML_send)
+    
+    Debug.Print objHTTP.Status
+    Debug.Print objHTTP.responseText
+    str_response = objHTTP.responseText
+    POST_Aade_SendInvoices = true
+Exit Function
+err:
+  POST_Aade_SendInvoices = False
+End Function

@@ -161,12 +161,12 @@ Public Class Form1
             gUserId = InputBox("Χρήστης", gUserId)
             gSubKey = InputBox("Κλειδί", gSubKey)
         Else
-            FileOpen(1, mf, OpenMode.Input)
+            FileOpen(11, mf, OpenMode.Input)
             '   Input(1, par)
-            par = LineInput(1)
-            gUserId = LineInput(1)
-            gSubKey = LineInput(1)
-            FileClose(1)
+            par = LineInput(11)
+            gUserId = LineInput(11)
+            gSubKey = LineInput(11)
+            FileClose(11)
         End If
         If check_path = 1 Then
             par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ  (CONFIG.INI ΣΤΟΝ ΤΡΕΧΟΝΤΑ ΦΑΚΕΛΟ) ", ":Π.Χ. (local)\sql2012:sa:12345678:1:EMP", par)
@@ -186,21 +186,21 @@ Public Class Form1
         End If
 
 
-        FileOpen(1, mf, OpenMode.Output)
-        PrintLine(1, par)
-        PrintLine(1, gUserId)
-        PrintLine(1, gSubKey)
+        FileOpen(7, mf, OpenMode.Output)
+        PrintLine(7, par)
+        PrintLine(7, gUserId)
+        PrintLine(7, gSubKey)
 
-        FileClose(1)
+        FileClose(7)
 
         Dim A As String
         If System.IO.File.Exists("DATES.TXT") Then
-            FileOpen(1, "DATES.TXT", OpenMode.Input)
-            A = LineInput(1)
+            FileOpen(31, "DATES.TXT", OpenMode.Input)
+            A = LineInput(31)
             ListBox2.Items.Add(A)
-            A = LineInput(1)
+            A = LineInput(31)
             ListBox2.Items.Add(A)
-
+            FileClose(31)
 
         End If
 
@@ -404,7 +404,7 @@ Public Class Form1
         'WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND   
         'Left(ATIM, 1) In     (  " + PAR + "  )    And 
         'HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
-
+        '<correlatedInvoices>400000017716190</correlatedInvoices>
         ToXMLsub = 1
 
 
@@ -1321,9 +1321,10 @@ Public Class Form1
     Private Async Sub MakeRequest2()
         Dim client = New HttpClient()
         Dim queryString = HttpUtility.ParseQueryString(String.Empty)
-        client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
-        queryString("mark") = "1000000006337" ' "{string}"
+        client.DefaultRequestHeaders.Add("aade-user-id", gUserId)
+        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", gSubKey)
+        Dim cc As String = InputBox("ΑΠΟ ΠΟΙΟ ΜΑΡΚ ΚΑΙ ΜΕΤΑ;")
+        queryString("mark") = cc  ' "1000000006337" ' "{string}"
         '  queryString("nextPartitionKey") = "{string}"
         '   queryString("nextRowKey") = "{string}"
         Dim uri = "https://mydata-dev.azure-api.net/RequestIssuerInvoices?" & queryString.ToString
@@ -1534,8 +1535,15 @@ Public Class Form1
         Dim client = New HttpClient()
         'Dim queryString = HttpUtility.ParseQueryString(String.Empty)
         Try
-            client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+
+            client.DefaultRequestHeaders.Add("aade-user-id", gUserId)
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", gSubKey)
+            ' Dim cc As String = InputBox("ΑΠΟ ΠΟΙΟ ΜΑΡΚ ΚΑΙ ΜΕΤΑ;")
+            ' queryString("mark") = cc  ' "1000000006337" ' "{string}"
+
+
+            'client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
+            'client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
 
             Dim uri = "https://mydata-dev.azure-api.net/CancelInvoice?mark=400000020235194"   ' 400000020235191" ' + queryString.ToString
 
@@ -1581,9 +1589,17 @@ Public Class Form1
     Private Async Sub MakeRequest3() ' RequestTransmittedDocs_Click
         Dim client = New HttpClient()
         Dim queryString = HttpUtility.ParseQueryString(String.Empty)
-        client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
-        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
-        queryString("mark") = "1000000006337" ' "{string}"
+
+        client.DefaultRequestHeaders.Add("aade-user-id", gUserId)
+        client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", gSubKey)
+        Dim cc As String = InputBox("ΑΠΟ ΠΟΙΟ ΜΑΡΚ ΚΑΙ ΜΕΤΑ;")
+        queryString("mark") = cc  ' "1000000006337" ' "{string}"
+
+
+
+        ' client.DefaultRequestHeaders.Add("aade-user-id", "glagakis2")
+        ' client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "555bc57c80634243958f62b629316aaa")
+        ' queryString("mark") = "1000000006337" ' "{string}"
         '  queryString("nextPartitionKey") = "{string}"
         '   queryString("nextRowKey") = "{string}"
         Dim uri = "https://mydata-dev.azure-api.net/RequestTransmittedDocs?" & queryString.ToString

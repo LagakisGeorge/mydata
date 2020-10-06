@@ -1,0 +1,44 @@
+RequestDocs (GET) =========================
+
+	Const URL2 = "https://mydata-dev.azure-api.net/RequestDocs"
+
+   'initialize
+	Set XMLServer = CreateObject("WinHttp.WinHttpRequest.5.1")
+    Set XMLReceive = CreateObject("Msxml2.DOMDocument.6.0")
+    XMLServer.setTimeouts 5000, 60000, 10000, 10000
+    
+    'force TLS 1.2
+    XMLServer.Option(9) = 2048
+    XMLServer.Option(6) = True
+    
+    XMLServer.Open "GET", URL2 & "?mark=400000019698028", False
+    XMLServer.setRequestHeader "aade-user-id", USER
+    XMLServer.setRequestHeader "Ocp-Apim-Subscription-Key", KEY
+    XMLServer.send ""
+
+    debug.print  XMLServer.status
+    debugPrint XMLServer.responseText
+
+	
+	
+	
+SendInvoices (POST) ===================
+
+	Const URL1 = "https://mydata-dev.azure-api.net/SendInvoices"
+
+    'initialize
+	Set XMLServer = CreateObject("WinHttp.WinHttpRequest.5.1")
+    Set XMLReceive = CreateObject("Msxml2.DOMDocument.6.0")
+    XMLServer.setTimeouts 5000, 60000, 10000, 10000
+    
+    'force TLS 1.2
+    XMLServer.Option(9) = 2048
+    XMLServer.Option(6) = True
+    
+    XMLServer.Open "POST", URL1, False
+    XMLServer.setRequestHeader "aade-user-id", USER
+    XMLServer.setRequestHeader "Ocp-Apim-Subscription-Key", KEY
+    XMLServer.send tXML
+    
+    debug.print  XMLServer.status
+    debugPrint XMLServer.responseText
