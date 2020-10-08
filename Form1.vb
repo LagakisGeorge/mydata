@@ -90,6 +90,7 @@ Public Class Form1
 
 
     End Sub
+
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
         MakeIncomeRequest()
     End Sub
@@ -1586,7 +1587,7 @@ Public Class Form1
 
     End Sub
 
-    Private Async Sub MakeRequest3() ' RequestTransmittedDocs_Click
+    Private Async Sub MakeRequest3() ' RequestTransmittedDocs_Click  400000074460885
         Dim client = New HttpClient()
         Dim queryString = HttpUtility.ParseQueryString(String.Empty)
 
@@ -1622,9 +1623,75 @@ Public Class Form1
         objStreamWriter.Close()
     End Sub
 
+    Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
+        xmlread()
+    End Sub
+    Private Sub xmlread()
 
 
 
 
 
+
+        Dim xmlDoc As New XmlDocument()
+        xmlDoc.Load("c:\txtfiles\apantreq.xml")  'xmlDoc.ChildNodes.Count =>2
+        Dim nodes As XmlNodeList
+
+        'xmlDoc.Load(fs);
+        nodes = xmlDoc.GetElementsByTagName("invoice")
+
+        ' Dim nodes As XmlNodeList = xmlDoc.DocumentElement.SelectSingleNode  '/RequestedDoc
+        'Dim nodes2 As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/invoicesDoc")  '/RequestedDoc οκ
+        ' Dim nodes3 As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("./RequestedDoc")  '/RequestedDoc
+
+        ' xmlDoc.DocumentElement.SelectSingleNode()
+
+        Me.Text = "Ελεγχος αριθμου εγγραφών"
+        Application.DoEvents()
+
+        Dim NF As Long = 0
+        For Each node As XmlNode In nodes
+            NF = NF + 1
+        Next
+        Application.DoEvents()
+        Me.Text = NF
+
+        For Each node As XmlNode In nodes
+            'Dim yparxei As Boolean = False
+
+            'Dim category_id As String = node.ParentNode.SelectSingleNode("./issuer").InnerText
+            ' Dim c As String = node.ChildNodes.Item(1).InnerText
+
+            Dim c2 As String = node.ChildNodes.Item(1).Name.ToString 'mark
+            Dim c22 As String = node.ChildNodes.Item(2).ChildNodes(0).Name.ToString 'vatnumber (issuer)
+
+            Dim c3 As String = node.ChildNodes.Item(3).Name.ToString
+            Dim v As String = ""
+            '? node.ChildNodes.Item(4).name  =>"invoiceHeader"
+
+            'Dim pID As String = node.SelectSingleNode("id").InnerText
+            ' Dim c2 As String = node.ChildNodes.Item("uid").InnerText
+            'Dim parent_id As String = node.SelectSingleNode("group/category/id").InnerText
+            'Dim pName As String = node.SelectSingleNode("name").InnerText
+
+            'Dim mPrice As String = node.SelectSingleNode("price").InnerText
+
+            'Dim pImage As String = node.SelectSingleNode("image").InnerText
+            'Dim pDescription As String = node.SelectSingleNode("descr").InnerText
+
+            'Dim pSKU As String = node.SelectSingleNode("sku").InnerText
+            'Dim pPrice As String = node.SelectSingleNode("group").InnerText
+            ''MessageBox.Show(pID & " " & pName & " " & pPrice)
+            'Dim pNow As String = Format(Now, "yyyy-MM-dd")
+            ''βρισκω το αντιστοιχο id στο δικό μου site
+
+            ''If category_id = 118 Then
+            ''    yparxei = False ' dum
+
+            ''End If
+        Next
+
+
+
+    End Sub
 End Class
