@@ -1661,6 +1661,7 @@ Public Class Form1
 
             'Dim category_id As String = node.ParentNode.SelectSingleNode("./issuer").InnerText
             ' Dim c As String = node.ChildNodes.Item(1).InnerText
+            Dim c255 As String = node.ChildNodes.Item("issuer").ChildNodes.Item("vatNumber").InnerText.ToString
 
             Dim c2 As String = node.ChildNodes.Item(1).Name.ToString 'mark
             Dim c22 As String = node.ChildNodes.Item(2).ChildNodes(0).Name.ToString 'vatnumber (issuer)
