@@ -10,6 +10,16 @@ Begin VB.Form Form1
    ScaleHeight     =   7110
    ScaleWidth      =   10680
    StartUpPosition =   3  'Windows Default
+   Begin VB.CommandButton cmdDOMDocumentUTF8 
+      BackColor       =   &H0000FF00&
+      Caption         =   "DOMDocument UTF8 ÙÂÛÙ"
+      Height          =   720
+      Left            =   4560
+      Style           =   1  'Graphical
+      TabIndex        =   6
+      Top             =   6360
+      Width           =   2775
+   End
    Begin VB.CommandButton cmdCommand5 
       BackColor       =   &H0000FF00&
       Caption         =   "DOMDocument UTF8"
@@ -88,6 +98,8 @@ Dim payaji As String
 Dim totalNetValue As String
 Dim totalVatAmount As String
 Dim totalGrossValue As String
+
+ Dim docStock As MSXML2.DOMDocument
 
 Dim classificationType As String
 
@@ -251,7 +263,7 @@ Private Sub cmdCommand5_Click()
 
 
  Dim varStock As Variant
-    Dim docStock As MSXML2.DOMDocument
+   'global       Dim docStock As MSXML2.DOMDocument
     Dim elemRoot As MSXML2.IXMLDOMElement
     Dim elemStock As MSXML2.IXMLDOMElement
     Dim elemField As MSXML2.IXMLDOMElement
@@ -295,6 +307,91 @@ Private Sub cmdCommand5_Click()
     
     
 End Sub
+
+Private Sub cmdDOMDocumentUTF8_Click()
+
+
+ Dim varStock As Variant
+  '  Dim docStock As MSXML2.DOMDocument
+    Dim elemRoot As MSXML2.IXMLDOMElement
+    Dim elemStock As MSXML2.IXMLDOMElement
+    Dim elemField As MSXML2.IXMLDOMElement
+    Dim I As Integer
+    
+    varStock = Array(Array("≈’—Ÿ12345", 10.32), _
+                     Array("•45632", 5.43)) 'Yen sign used here to show Unicode.
+    
+    Set docStock = New MSXML2.DOMDocument
+    With docStock
+        .appendChild .createProcessingInstruction("xml", _
+                                                  "version=""1.0"" encoding=""utf-8""")
+        Set elemRoot = .createElement("ArrayOfStock")
+      '  With elemRoot/////////////////////////////////////////////////////////////////////////////////////////
+            elemRoot.setAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
+            elemRoot.setAttribute "xmlns:xsd", "http://www.w3.org/2001/XMLSchema"
+            
+            For I = 0 To UBound(varStock)
+                Set elemStock = docStock.createElement("Stock")
+               ' With elemStock----------------------------------
+               
+'                    add_c Stock, "ProductCode", "11111"
+'                     add_c Stock, "ProductPrice", "1.35"
+               
+                    Set elemField = docStock.createElement("ProductCode")
+                       
+                       
+                       ' ‰ÁÏÈÔıÒ„˘ ÂÛÔ˜Á
+                        Set elem2Field = docStock.createElement("Product2Price")
+                            elem2Field.Text = "22222"
+                            elemField.appendChild elem2Field
+
+                       
+                       
+                       
+                       
+                     elemStock.appendChild elemField
+                    
+                    
+                    
+                    
+                    
+                    
+                    Set elemField = docStock.createElement("ProductPrice"): elemField.Text = "22222": elemStock.appendChild elemField
+
+                    
+               ' End With--------------------------------------
+                elemRoot.appendChild elemStock
+            Next
+      '  End With  /////////////////////////////////////////////////////////////////////////////////////////////
+        Set .documentElement = elemRoot
+        On Error Resume Next
+        Kill "C:\created.xml"
+        On Error GoTo 0
+        .save "C:\created.xml"
+    End With
+    
+End Sub
+
+'Sub add_1(elem As MSXML2.IXMLDOMElement, klados As String)
+'
+'    Set elem = docStock.createElement(klados)
+'
+'End Sub
+
+
+Sub add_c(ByRef mParent As MSXML2.IXMLDOMElement, mChild As String, mText As String)
+Dim elemField  As MSXML2.IXMLDOMElement
+ Set elemField = docStock.createElement(mChild)
+                    elemField.Text = mText
+                    elemField.appendChild elemField
+
+
+
+End Sub
+
+
+
+
 
 Private Sub Command1_Click()
 'Dim doc as XmlDocument = new XmlDocument()
@@ -493,70 +590,85 @@ Private Sub Command2_Click()
    ToXMLsub
    
 End Sub
+
 Private Sub ToXMLsub()
 
-        '===¬√¡∆Ÿ ‘œ XML √…¡ ‘¡ –¡—¡”‘¡‘… ¡ =================================================================================
-        'WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND
-        'Left(ATIM, 1) In     (  " + PAR + "  )    And
-        'HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
-        '<correlatedInvoices>400000017716190</correlatedInvoices>
-       
-Dim R As New ADODB.Recordset
+ Dim varStock As Variant
+  '  Dim docStock As MSXML2.DOMDocument
+    Dim elemRoot As MSXML2.IXMLDOMElement
+    Dim INVOICE As MSXML2.IXMLDOMElement
+    Dim elemField As MSXML2.IXMLDOMElement
+    Dim I As Integer
+    
+   '<InvoicesDoc   xmlns="http://www.aade.gr/myDATA/invoice/v1.0"
+                 ' xsi:schemaLocation="http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
+                 ' xmlns:N1="https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
+                 ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    Set docStock = New MSXML2.DOMDocument
+    With docStock
+        .appendChild .createProcessingInstruction("xml", _
+                                                  "version=""1.0"" encoding=""utf-8""")
+        Set elemRoot = .createElement("InvoicesDoc")
+       With elemRoot '/////////////////////////////////////////////////////////////////////////////////////////
+            .setAttribute "xmlns", "http://www.aade.gr/myDATA/invoice/v1.0"
+            .setAttribute "xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
+            .setAttribute "xmlns:N1", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
+            .setAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+           ' For I = 0 To UBound(varStock)
+                Set INVOICE = docStock.createElement("invoice")
+                With INVOICE  '----------------------------------
+                      
+                        Set elemField = docStock.createElement("uid"): elemField.Text = "1": INVOICE.appendChild elemField
+                      
+                      
+                      
+                        Set elemField = docStock.createElement("issuer") ' ‰ÁÏÈÔıÒ„˘ ÂÛÔ˜Á
+                            Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "028783755": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
+                        .appendChild elemField
+                                
+                                
+                        Set elemField = docStock.createElement("counterpart") ' ‰ÁÏÈÔıÒ„˘ ÂÛÔ˜
+                            Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "000000000": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
+                            
+                            Set elem2Field = docStock.createElement("address")
+                                  Set elem3Field = docStock.createElement("postalCode"): elem3Field.Text = "66100": elem2Field.appendChild elem3Field
+                                  Set elem3Field = docStock.createElement("city"): elem3Field.Text = "”≈——≈”": elem2Field.appendChild elem3Field
+                            elemField.appendChild elem2Field
+                            
+                            
+                        .appendChild elemField
 
+                    
+                End With  '--------------------------------------
+                .appendChild INVOICE
+           ' Next
+        End With ' /////////////////////////////////////////////////////////////////////////////////////////////
+        Set .documentElement = elemRoot
+        On Error Resume Next
+        Kill "C:\txtfiles\inv.xml"
+        On Error GoTo 0
+        .save "C:\txtfiles\inv.xml"
+    End With
+    
 
-        Dim pol, polepis, ago, AGOEPIS As String
-
-
-       
-        ExecuteSQLQuery "UPDATE TIM SET ENTITY=0,ENTLINEN=0", R
-
-      '  Get_AJ_ASCII pol, polepis, ago, AGOEPIS
-
-        Dim PAR, SYNT As String
-        PAR = pol + polepis
-        Dim SQL As String
-        SYNT = ""
-        SQL = "SELECT  ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
-        SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,PEL.XRVMA"    '"CONVERT(CHAR(10),HME,3) AS HMEP
-        SQL = SQL + ",PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7,TRP,APALAGIFPA "
-
-        SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
-        SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
-        SQL = SQL + "  AND AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7>0  " + SYNT
-        SQL = SQL + " order by HME"       '  OR INCMARK IS NULL OR INCMARK='ERROR'
-
-
-
-
-        '  SQL = "SELECT  top 20  AJ1 ,AJ2  from TIM  order by HME"
-
-        ExecuteSQLQuery SQL, R
-
-        If sqlDT.Rows.Count = 0 Then
-            MsgBox ("ƒ≈Õ ¬—≈»« ¡Õ ≈√√—¡÷≈”")
-           ' ToXMLsub = 0
-            Exit Sub
-        End If
-
-
-
-        Dim ff As String
-        ff = "c:\txtfiles\inv.xml" 'c:\mercvb\m" + Format(Now, "yyyyddmmHHMM") + ".export" ' "\\Logisthrio\333\pr.export" '
-        Dim writer As New MXXMLWriter
-        writer = MXXMLWriter(ff, System.Text.encoding.UTF8)
-        writer.WriteStartDocument (True)
-        writer.Formatting = Formatting.Indented
-        writer.Indentation = 2
-        writer.WriteStartElement ("InvoicesDoc")
-        writer.WriteAttributeString "xmlns", "http://www.aade.gr/myDATA/invoice/v1.0"
-        writer.WriteAttributeString "xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
-        writer.WriteAttributeString "xmlns:N1", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
-        writer.WriteAttributeString "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
-
-        writer.WriteEndDocument
-        writer.Close
-        
-        End Sub
+End Sub
         
         Sub TEST22()
         
@@ -957,3 +1069,7 @@ Dim sqlDT2 As New ADODB.Recordset
 
 
     End Function
+
+Private Sub Form_Load()
+  gdb.Open "DSN=MERCSQL"
+End Sub
