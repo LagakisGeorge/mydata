@@ -612,7 +612,7 @@ Private Sub ToXMLsub()
        With elemRoot '/////////////////////////////////////////////////////////////////////////////////////////
             .setAttribute "xmlns", "http://www.aade.gr/myDATA/invoice/v1.0"
             .setAttribute "xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
-            .setAttribute "xmlns:N1", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
+            .setAttribute "xmlns:n1", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
             .setAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
             
             
@@ -643,17 +643,131 @@ Private Sub ToXMLsub()
                                 
                                 
                         Set elemField = docStock.createElement("counterpart") ' δημιουργω εσοχ
-                            Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "000000000": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "091815127": elemField.appendChild elem2Field
                             Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
                             Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
                             
-                            Set elem2Field = docStock.createElement("address")
+                            Set elem2Field = docStock.createElement("address") ' δημιουργω εσοχ' δημιουργω εσοχ
                                   Set elem3Field = docStock.createElement("postalCode"): elem3Field.Text = "66100": elem2Field.appendChild elem3Field
                                   Set elem3Field = docStock.createElement("city"): elem3Field.Text = "ΣΕΡΡΕΣ": elem2Field.appendChild elem3Field
                             elemField.appendChild elem2Field
                             
+                        .appendChild elemField
+
+                         Set elemField = docStock.createElement("invoiceHeader") ' δημιουργω εσοχη
+                            Set elem2Field = docStock.createElement("series"): elem2Field.Text = "0": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("aa"): elem2Field.Text = "00008": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("issueDate"): elem2Field.Text = "2020-04-01": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("invoiceType"): elem2Field.Text = "1.1": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("currency"): elem2Field.Text = "EUR": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("exchangeRate"): elem2Field.Text = "1.0": elemField.appendChild elem2Field
+                                                       
+                        .appendChild elemField
+                        
+
+                        Set elemField = docStock.createElement("paymentMethods") ' δημιουργω εσοχ
+                            
+                            Set elem2Field = docStock.createElement("paymentMethodDetails") ' δημιουργω εσοχ' δημιουργω εσοχ
+                                  Set elem3Field = docStock.createElement("type"): elem3Field.Text = "1": elem2Field.appendChild elem3Field
+                                  Set elem3Field = docStock.createElement("amount"): elem3Field.Text = "37.20": elem2Field.appendChild elem3Field
+                            elemField.appendChild elem2Field
                             
                         .appendChild elemField
+
+
+
+
+
+
+
+
+
+                       For N = 1 To 3 ' SEIRES TIMOLOGIOY
+
+                        
+                        Set elemField = docStock.createElement("invoiceDetails") ' δημιουργω εσοχ
+                            Set elem2Field = docStock.createElement("lineNumber"): elem2Field.Text = Str(N): elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("netValue"): elem2Field.Text = "10": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("vatCategory"): elem2Field.Text = "1": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("vatAmount"): elem2Field.Text = "2.40": elemField.appendChild elem2Field
+                            
+                            Set elem2Field = docStock.createElement("incomeClassification") ' δημιουργω εσοχ' δημιουργω εσοχ
+                                  Set elem3Field = docStock.createElement("n1:classificationType"): elem3Field.Text = "E3_561_001": elem2Field.appendChild elem3Field
+                                  Set elem3Field = docStock.createElement("n1:classificationCategory"): elem3Field.Text = "category1_2": elem2Field.appendChild elem3Field
+                                  Set elem3Field = docStock.createElement("n1:amount"): elem3Field.Text = "10": elem2Field.appendChild elem3Field
+                            elemField.appendChild elem2Field
+                            
+                        .appendChild elemField
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                       Next
+                        
+                        
+                        
+'                        <invoiceSummary>
+'      <totalNetValue>379.70</totalNetValue>
+'      <totalVatAmount>61.51</totalVatAmount>
+'      <totalWithheldAmount>0.00</totalWithheldAmount>
+
+'      <totalFeesAmount>0.00</totalFeesAmount>
+
+'      <totalStampDutyAmount>0.00</totalStampDutyAmount>
+'      <totalOtherTaxesAmount>0.00</totalOtherTaxesAmount>
+'      <totalDeductionsAmount>0.00</totalDeductionsAmount>
+
+
+'      <totalGrossValue>441.21</totalGrossValue>
+'      <incomeClassification>
+'        <n1:classificationType>E3_561_001</n1:classificationType>
+'        <n1:classificationCategory>category1_2</n1:classificationCategory>
+'        <n1:amount>379.70</n1:amount>
+'      </incomeClassification>
+'    </invoiceSummary>
+                        
+                        
+                       Set elemField = docStock.createElement("invoiceSummary") ' δημιουργω εσοχ
+                            Set elem2Field = docStock.createElement("totalNetValue"): elem2Field.Text = "30.00": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("totalVatAmount"): elem2Field.Text = "7.20": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("totalWithheldAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            
+                            Set elem2Field = docStock.createElement("totalFeesAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("totalStampDutyAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            Set elem2Field = docStock.createElement("totalOtherTaxesAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            
+                            Set elem2Field = docStock.createElement("totalDeductionsAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            
+                            
+                            Set elem2Field = docStock.createElement("totalGrossValue"): elem2Field.Text = "37.20": elemField.appendChild elem2Field
+                            
+                            Set elem2Field = docStock.createElement("incomeClassification") ' δημιουργω εσοχ' δημιουργω εσοχ
+                                  Set elem3Field = docStock.createElement("n1:classificationType"): elem3Field.Text = "E3_561_001": elem2Field.appendChild elem3Field
+                                  Set elem3Field = docStock.createElement("n1:classificationCategory"): elem3Field.Text = "category1_2": elem2Field.appendChild elem3Field
+                                  Set elem3Field = docStock.createElement("n1:amount"): elem3Field.Text = "30": elem2Field.appendChild elem3Field
+                            elemField.appendChild elem2Field
+                            
+                        .appendChild elemField
+                          
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
 
                     
                 End With  '--------------------------------------
