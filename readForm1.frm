@@ -1,4 +1,5 @@
 VERSION 5.00
+Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.Form Form1 
    BackColor       =   &H00FFFF80&
    Caption         =   "Form1"
@@ -10,6 +11,38 @@ Begin VB.Form Form1
    ScaleHeight     =   7110
    ScaleWidth      =   10680
    StartUpPosition =   3  'Windows Default
+   Begin MSComCtl2.DTPicker EOS 
+      Height          =   255
+      Left            =   1800
+      TabIndex        =   9
+      Top             =   4920
+      Width           =   1575
+      _ExtentX        =   2778
+      _ExtentY        =   450
+      _Version        =   393216
+      Format          =   136118273
+      CurrentDate     =   44118
+   End
+   Begin MSComCtl2.DTPicker APO 
+      Height          =   255
+      Left            =   240
+      TabIndex        =   8
+      Top             =   4920
+      Width           =   1095
+      _ExtentX        =   1931
+      _ExtentY        =   450
+      _Version        =   393216
+      Format          =   136118273
+      CurrentDate     =   44118
+   End
+   Begin VB.CommandButton cmdCommand6 
+      Caption         =   "Command3"
+      Height          =   360
+      Left            =   8520
+      TabIndex        =   7
+      Top             =   6360
+      Width           =   990
+   End
    Begin VB.CommandButton cmdDOMDocumentUTF8 
       BackColor       =   &H0000FF00&
       Caption         =   "DOMDocument UTF8 τεστ"
@@ -308,6 +341,80 @@ Private Sub cmdCommand5_Click()
     
 End Sub
 
+' Add formatting to the document.
+Private Sub FormatXmlDocument(ByVal xml_doc As DOMDocument)
+    FormatXmlNode xml_doc.documentElement, 0
+End Sub
+
+' Add formatting to this element. Indent it and add a
+' carriage return before its children. Then recursively
+' format the children with increased indentation.
+Private Sub FormatXmlNode(ByVal node As IXMLDOMNode, ByVal _
+    indent As Integer)
+Dim child As IXMLDOMNode
+Dim text_only As Boolean
+
+    ' Do nothing if this is a text node.
+    If TypeOf node Is IXMLDOMText Then Exit Sub
+
+    ' See if this node contains only text.
+    text_only = True
+    If node.hasChildNodes Then
+        For Each child In node.childNodes
+            If Not (TypeOf child Is IXMLDOMText) Then
+                text_only = False
+                Exit For
+            End If
+        Next child
+    End If
+
+    ' Process child nodes.
+    If node.hasChildNodes Then
+        ' Add a carriage return before the children.
+        If Not text_only Then
+            node.insertBefore _
+                node.ownerDocument.createTextNode(vbCrLf), _
+                node.firstChild
+        End If
+
+        ' Format the children.
+        For Each child In node.childNodes
+            FormatXmlNode child, indent + 2
+        Next child
+    End If
+
+    ' Format this element.
+    If indent > 0 Then
+        ' Indent before this element.
+        node.parentNode.insertBefore _
+            node.ownerDocument.createTextNode(Space$(indent)), _
+ _
+            node
+
+        ' Indent after the last child node.
+        If Not text_only Then _
+            node.appendChild _
+                node.ownerDocument.createTextNode(Space$(indent))
+
+        ' Add a carriage return after this node.
+        If node.nextSibling Is Nothing Then
+            node.parentNode.appendChild _
+                node.ownerDocument.createTextNode(vbCrLf)
+        Else
+            node.parentNode.insertBefore _
+                node.ownerDocument.createTextNode(vbCrLf), _
+                node.nextSibling
+        End If
+    End If
+End Sub
+
+
+
+
+
+
+
+
 Private Sub cmdDOMDocumentUTF8_Click()
 
 
@@ -409,7 +516,7 @@ Private Sub Command1_Click()
 
     Dim nodeList As IXMLDOMNodeList
     Dim node As IXMLDOMNode
-gdb.Open "DSN=MERCSQL;"
+gdb.open "DSN=MERCSQL;"
     Set nodeList = objXML.selectNodes("RequestedDoc/invoicesDoc/invoice")
 
     For Each node In nodeList
@@ -587,520 +694,644 @@ Sub TEST()
 End Sub
 
 Private Sub Command2_Click()
-   ToXMLsub
+   Dim n As Integer: n = ToXMLsub
    
 End Sub
 
-Private Sub ToXMLsub()
+Function ToXMLsub() As Integer
 
- Dim varStock As Variant
-  '  Dim docStock As MSXML2.DOMDocument
+    '===?G??O ?? XML G?? ?? ????S?????? =================================================================================
+    'WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND
+    'Left(ATIM, 1) In     (  " + PAR + "  )    And
+    'HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
+    '<correlatedInvoices>400000017716190</correlatedInvoices>
+    ToXMLsub = 1
+
+    Dim pol As String, polepis, ago, AGOEPIS As String
+
+    pol = "": polepis = "": ago = "": AGOEPIS = ""
+    'If checkServer(0) Then
+    ' MsgBox("OK")
+    'End If
+    gdb.Execute "UPDATE TIM SET ENTITY=0,ENTLINEN=0"
+
+    Dim DUM As Boolean: DUM = Get_AJ_ASCII(pol, polepis, ago, AGOEPIS)
+
+    Dim PAR, SYNT As String
+
+    PAR = pol + polepis
+
+    Dim SQL As String
+
+    SYNT = ""
+    SQL = "SELECT  ID_NUM, AJ1  ,AJ2 , AJ3,AJ4,AJ5,AJI,FPA1,FPA2,FPA3,FPA4,ATIM,"
+    SQL = SQL + "HME,PEL.EPO,PEL.AFM,KPE,PEL.DIE,"    '"CONVERT(CHAR(10),HME,3) AS HMEP
+    SQL = SQL + "PEL.EPA,PEL.POL,AJ6,FPA6,AJ7,FPA7,TRP,ISNULL(APALAGIFPA,0) AS APALAGIFPA ,ISNULL(PEL.XRVMA,'') AS TK "
+
+    SQL = SQL + "   FROM TIM INNER JOIN PEL ON TIM.EIDOS=PEL.EIDOS AND TIM.KPE=PEL.KOD "
+    SQL = SQL + " WHERE (ENTITYMARK IS NULL OR ENTITYMARK='ERROR' ) AND    LEFT(ATIM,1) IN     (  " + PAR + "  )    and HME>='" + Format(APO.Value, "MM/dd/yyyy") + "'  AND HME<='" + Format(EOS.Value, "MM/dd/yyyy") + "'  "
+    SQL = SQL + "  AND AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7>0  " + SYNT
+    SQL = SQL + " order by HME"       '  OR INCMARK IS NULL OR INCMARK='ERROR'
+
+    Dim sqldt As New ADODB.Recordset
+
+    '  SQL = "SELECT  top 20  AJ1 ,AJ2  from TIM  order by HME"
+
+    sqldt.open SQL, gdb, adOpenDynamic, adLockOptimistic
+
+    If sqldt.EOF Then
+        MsgBox ("ΔΕΝ ΒΡΕΘΗΚΑΝ ΕΓΓΡΑΦΕΣ")
+        ToXMLsub = 0
+
+        Exit Function
+
+    End If
+
+    Dim varStock As Variant
+
+    '  Dim docStock As MSXML2.DOMDocument
     Dim elemRoot As MSXML2.IXMLDOMElement
+
     Dim INVOICE As MSXML2.IXMLDOMElement
+
     Dim elemField As MSXML2.IXMLDOMElement
+
     Dim I As Integer
     
-   '<InvoicesDoc   xmlns="http://www.aade.gr/myDATA/invoice/v1.0"
-                 ' xsi:schemaLocation="http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
-                 ' xmlns:N1="https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
-                 ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    '<InvoicesDoc   xmlns="http://www.aade.gr/myDATA/invoice/v1.0"
+    ' xsi:schemaLocation="http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
+    ' xmlns:N1="https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
+    ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     Set docStock = New MSXML2.DOMDocument
+
     With docStock
-        .appendChild .createProcessingInstruction("xml", _
-                                                  "version=""1.0"" encoding=""utf-8""")
+        .appendChild .createProcessingInstruction("xml", "version=""1.0"" encoding=""utf-8""")
         Set elemRoot = .createElement("InvoicesDoc")
-       With elemRoot '/////////////////////////////////////////////////////////////////////////////////////////
+
+        With elemRoot '/////////////////////////////////////////////////////////////////////////////////////////
             .setAttribute "xmlns", "http://www.aade.gr/myDATA/invoice/v1.0"
             .setAttribute "xsi:schemaLocation", "http://www.aade.gr/myDATA/invoice/v1.0 schema.xsd"
             .setAttribute "xmlns:n1", "https://www.aade.gr/myDATA/incomeClassificaton/v1.0"
             .setAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
             
+            'Dim I As Long:
+            I = -1
             
+            Do While Not sqldt.EOF
             
+                I = I + 1
             
+                '  If checkIntegrity(I) = False Then
+
+                '    MsgBox (" ΠΡΟΒΛΗΜΑ ΣΤΟ ΠΑΡΑΣΤΑΤΙΚΟ " + sqldt(0)("ATIM").ToString)
+                '  End If
+
+                Dim EGGTIM As New ADODB.Recordset
+
+                Me.Caption = "ΠΑΡΑΣΤΑΤΙΚΑ " + Str(I)
+                EGGTIM.open "SELECT KODE,POSO,TIMM,EKPT,FPA,ISNULL(KAU_AJIA,0) AS KAU_AJIA,ISNULL(MIK_AJIA,0) AS MIK_AJIA FROM EGGTIM WHERE TIMM<>0 AND POSO<>0 AND ID_NUM=" + Str(sqldt("ID_NUM")), gdb, adOpenDynamic, adLockOptimistic
+                'Dim DUM As New DataTable
+                gdb.Execute "UPDATE TIM SET ENTITY=" + Str(I + 1) + " WHERE ID_NUM=" + Str(sqldt("ID_NUM"))
+
+                sumNet = sqldt("aj1") + sqldt("aj2") + sqldt("aj3") + sqldt("aj4") + sqldt("aj5") + sqldt("aj6") + sqldt("aj7")
+                sumFpa = sqldt("fpa1") + sqldt("fpa2") + sqldt("fpa3") + sqldt("fpa4") + sqldt("fpa6") + sqldt("fpa7")
+
+                '1.1;E3_561_001;category1_1
+                ctypos = FINDTYPOS(Mid(sqldt("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
+
+                If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
+                    'writer.Close()
+                    MsgBox ("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " + sqldt("ATIM"))
+
+                    Exit Function
+
+                End If
+
+                ' writer.WriteComment (sqldt("ATIM") + " " + Format(sqldt("HME"), "dd/MM/yyyy"))
             
-            
-            
-            
-            
-            
-            
-            
-            
-           ' For I = 0 To UBound(varStock)
+                ' For I = 0 To UBound(varStock)
                 Set INVOICE = docStock.createElement("invoice")
+
                 With INVOICE  '----------------------------------
                       
-                        Set elemField = docStock.createElement("uid"): elemField.Text = "1": INVOICE.appendChild elemField
+                    Set elemField = docStock.createElement("uid"): elemField.Text = Str(I + 1): INVOICE.appendChild elemField
                       
-                      
-                      
-                        Set elemField = docStock.createElement("issuer") ' δημιουργω εσοχη
-                            Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "028783755": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
-                        .appendChild elemField
+                    Set elemField = docStock.createElement("issuer") ' δημιουργω εσοχη
+                    Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "028783755": elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
+                    .appendChild elemField
                                 
+                    If Mid(Split(ctypos, ";")(0), 1, 2) = "11" Then
+                        'lianikh den xreiazetai pelaths
+                    Else
                                 
                         Set elemField = docStock.createElement("counterpart") ' δημιουργω εσοχ
-                            Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = "091815127": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("vatNumber"): elem2Field.Text = Trim(sqldt("AFM")): elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("country"): elem2Field.Text = "GR": elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("branch"): elem2Field.Text = "0": elemField.appendChild elem2Field
                             
-                            Set elem2Field = docStock.createElement("address") ' δημιουργω εσοχ' δημιουργω εσοχ
-                                  Set elem3Field = docStock.createElement("postalCode"): elem3Field.Text = "66100": elem2Field.appendChild elem3Field
-                                  Set elem3Field = docStock.createElement("city"): elem3Field.Text = "ΣΕΡΡΕΣ": elem2Field.appendChild elem3Field
-                            elemField.appendChild elem2Field
-                            
+                        Set elem2Field = docStock.createElement("address") ' δημιουργω εσοχ' δημιουργω εσοχ  sqlDT(i)("XRVMA")= TK
+                        Set elem3Field = docStock.createElement("postalCode"): elem3Field.Text = sqldt("TK"): elem2Field.appendChild elem3Field
+                        Set elem3Field = docStock.createElement("city"): elem3Field.Text = sqldt("POL"): elem2Field.appendChild elem3Field
+                        elemField.appendChild elem2Field
                         .appendChild elemField
+                    End If
 
-                         Set elemField = docStock.createElement("invoiceHeader") ' δημιουργω εσοχη
-                            Set elem2Field = docStock.createElement("series"): elem2Field.Text = "0": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("aa"): elem2Field.Text = "00008": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("issueDate"): elem2Field.Text = "2020-04-01": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("invoiceType"): elem2Field.Text = "1.1": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("currency"): elem2Field.Text = "EUR": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("exchangeRate"): elem2Field.Text = "1.0": elemField.appendChild elem2Field
+                    Set elemField = docStock.createElement("invoiceHeader") ' δημιουργω εσοχη
+                    Set elem2Field = docStock.createElement("series"): elem2Field.Text = "0": elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("aa"): elem2Field.Text = Mid(sqldt("ATIM"), 2, 6): elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("issueDate"): elem2Field.Text = Format(sqldt("hme"), "yyyy-MM-dd"): elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("invoiceType"): elem2Field.Text = Split(ctypos, ";")(0): elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("currency"): elem2Field.Text = "EUR": elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("exchangeRate"): elem2Field.Text = "1.0": elemField.appendChild elem2Field
                                                        
-                        .appendChild elemField
+                    .appendChild elemField
                         
+                    Dim cTrp As String: cTrp = FindTRP(Mid(sqldt("TRP"), 1, 1))
 
-                        Set elemField = docStock.createElement("paymentMethods") ' δημιουργω εσοχ
+                    If Len(cTrp) = 0 Then
+                        MsgBox ("ΔΕΝ ΕΧΩ ΑΝΤΙΣΤΟΙΧΙΣΗ ΣΤΟΝ ΤΡΟΠΟ ΠΛΗΡΩΜΗΣ " + sqldt(I)("TRP"))
+             
+                        Exit Function
+
+                    End If
+
+                    Set elemField = docStock.createElement("paymentMethods") ' δημιουργω εσοχ
                             
-                            Set elem2Field = docStock.createElement("paymentMethodDetails") ' δημιουργω εσοχ' δημιουργω εσοχ
-                                  Set elem3Field = docStock.createElement("type"): elem3Field.Text = "1": elem2Field.appendChild elem3Field
-                                  Set elem3Field = docStock.createElement("amount"): elem3Field.Text = "37.20": elem2Field.appendChild elem3Field
-                            elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("paymentMethodDetails") ' δημιουργω εσοχ' δημιουργω εσοχ
+                    Set elem3Field = docStock.createElement("type"): elem3Field.Text = cTrp: elem2Field.appendChild elem3Field
+                    Set elem3Field = docStock.createElement("amount"): elem3Field.Text = Format(sumNet + sumFpa, "######0.##"): elem2Field.appendChild elem3Field
+                    elemField.appendChild elem2Field
                             
-                        .appendChild elemField
+                    .appendChild elemField
 
 
 
 
+                     Dim SYN_KAU, SYN_FPA As Double
+                        SYN_KAU = 0
+                        SYN_FPA = 0
+                        Dim fpaRow As Double
 
 
 
+                    Dim L As Integer: L = 0
 
+                    Do While Not EGGTIM.EOF
+                        'For n = 1 To 3 ' SEIRES TIMOLOGIOY
+                        L = L + 1
+                        Dim AJ As Single
 
-                       For N = 1 To 3 ' SEIRES TIMOLOGIOY
+                        If IsNull(EGGTIM("TIMM")) Then
+                            AJ = 0
+                        Else
+                            AJ = EGGTIM("KAU_AJIA")  ' Math.Round(EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100), 2)
+                        End If
 
+                        Dim VAT As String
+
+                        '1 ΦΠΑ συντελεστής 24% 24%
+                        '2 ΦΠΑ συντελεστής 13% 13%
+                        '3 ΦΠΑ συντελεστής 6% 6%
+                        '4 ΦΠΑ συντελεστής 17% 17%
+                        '5 ΦΠΑ συντελεστής 9% 9%
+                        '6 ΦΠΑ συντελεστής 4% 4%
+                        '7 ’νευ Φ.Π.Α. 0%
+                        '8 Εγγραφές χωρίς ΦΠΑ  (πχ Μισθοδοσία, Αποσβέσεις)
+
+                        If EGGTIM("FPA") = 1 Then '13%
+                            VAT = "2"
+                            SYN_KAU = SYN_KAU + AJ
+                            fpaRow = EGGTIM("MIK_AJIA") - EGGTIM("KAU_AJIA") ' AJ * 0.13
+                            SYN_FPA = SYN_FPA + fpaRow
+
+                            'ElseIf EGGTIM(L)("FPA") = 2 Then
+                            '   VAT = "1"
+                        ElseIf EGGTIM("FPA") = 2 Then
+                            VAT = "1"
+                            SYN_KAU = SYN_KAU + AJ
+                            fpaRow = EGGTIM("MIK_AJIA") - EGGTIM("KAU_AJIA") 'AJ * 0.24
+                            SYN_FPA = SYN_FPA + fpaRow
+
+                            ' SYN_FPA = SYN_FPA + AJ * 0.24
+
+                        ElseIf EGGTIM("FPA") = 5 Then
+                            VAT = "7"
+                            SYN_KAU = SYN_KAU + AJ
+                            fpaRow = 0
+                            SYN_FPA = SYN_FPA + fpaRow
+
+                        ElseIf EGGTIM("FPA") = 6 Then
+                            VAT = "1"
+                            SYN_KAU = SYN_KAU + AJ
+                            ' SYN_FPA = SYN_FPA + AJ * 0.24
+
+                            fpaRow = EGGTIM("MIK_AJIA") - EGGTIM("KAU_AJIA")  ' AJ * 0.24
+                            SYN_FPA = SYN_FPA + fpaRow
+
+                        ElseIf EGGTIM("FPA") = 4 Then
+                            VAT = "4"
+                            SYN_KAU = SYN_KAU + AJ
+                            fpaRow = EGGTIM("MIK_AJIA") - EGGTIM("KAU_AJIA")  ' AJ * 0.06
+                            SYN_FPA = SYN_FPA + fpaRow
+                        Else ' If EGGTIM(L)("FPA") = 2 Then
+                            VAT = "1"
+                        End If
+
+                        '-----------------------------------------------  invoiceDetails
                         
                         Set elemField = docStock.createElement("invoiceDetails") ' δημιουργω εσοχ
-                            Set elem2Field = docStock.createElement("lineNumber"): elem2Field.Text = Str(N): elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("netValue"): elem2Field.Text = "10": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("vatCategory"): elem2Field.Text = "1": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("vatAmount"): elem2Field.Text = "2.40": elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("lineNumber"): elem2Field.Text = Str(L): elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("netValue"): elem2Field.Text = Format(AJ, "######0.##"): elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("vatCategory"): elem2Field.Text = VAT: elemField.appendChild elem2Field
+                        Set elem2Field = docStock.createElement("vatAmount"): elem2Field.Text = Format(fpaRow, "######0.##"): elemField.appendChild elem2Field
                             
-                            Set elem2Field = docStock.createElement("incomeClassification") ' δημιουργω εσοχ' δημιουργω εσοχ
-                                  Set elem3Field = docStock.createElement("n1:classificationType"): elem3Field.Text = "E3_561_001": elem2Field.appendChild elem3Field
-                                  Set elem3Field = docStock.createElement("n1:classificationCategory"): elem3Field.Text = "category1_2": elem2Field.appendChild elem3Field
-                                  Set elem3Field = docStock.createElement("n1:amount"): elem3Field.Text = "10": elem2Field.appendChild elem3Field
-                            elemField.appendChild elem2Field
-                            
-                        .appendChild elemField
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                       Next
-                        
-                        
-                        
-'                        <invoiceSummary>
-'      <totalNetValue>379.70</totalNetValue>
-'      <totalVatAmount>61.51</totalVatAmount>
-'      <totalWithheldAmount>0.00</totalWithheldAmount>
-
-'      <totalFeesAmount>0.00</totalFeesAmount>
-
-'      <totalStampDutyAmount>0.00</totalStampDutyAmount>
-'      <totalOtherTaxesAmount>0.00</totalOtherTaxesAmount>
-'      <totalDeductionsAmount>0.00</totalDeductionsAmount>
-
-
-'      <totalGrossValue>441.21</totalGrossValue>
-'      <incomeClassification>
-'        <n1:classificationType>E3_561_001</n1:classificationType>
-'        <n1:classificationCategory>category1_2</n1:classificationCategory>
-'        <n1:amount>379.70</n1:amount>
-'      </incomeClassification>
-'    </invoiceSummary>
-                        
-                        
-                       Set elemField = docStock.createElement("invoiceSummary") ' δημιουργω εσοχ
-                            Set elem2Field = docStock.createElement("totalNetValue"): elem2Field.Text = "30.00": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("totalVatAmount"): elem2Field.Text = "7.20": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("totalWithheldAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
-                            
-                            Set elem2Field = docStock.createElement("totalFeesAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("totalStampDutyAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
-                            Set elem2Field = docStock.createElement("totalOtherTaxesAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
-                            
-                            Set elem2Field = docStock.createElement("totalDeductionsAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
-                            
-                            
-                            Set elem2Field = docStock.createElement("totalGrossValue"): elem2Field.Text = "37.20": elemField.appendChild elem2Field
-                            
-                            Set elem2Field = docStock.createElement("incomeClassification") ' δημιουργω εσοχ' δημιουργω εσοχ
-                                  Set elem3Field = docStock.createElement("n1:classificationType"): elem3Field.Text = "E3_561_001": elem2Field.appendChild elem3Field
-                                  Set elem3Field = docStock.createElement("n1:classificationCategory"): elem3Field.Text = "category1_2": elem2Field.appendChild elem3Field
-                                  Set elem3Field = docStock.createElement("n1:amount"): elem3Field.Text = "30": elem2Field.appendChild elem3Field
-                            elemField.appendChild elem2Field
+                          If fpaRow = 0 Then
+                                Set elem2Field = docStock.createElement("vatExemptionCategory"): elem2Field.Text = "1": elemField.appendChild elem2Field
+                           End If
+                        Set elem2Field = docStock.createElement("incomeClassification") ' δημιουργω εσοχ' δημιουργω εσοχ
+                        Set elem3Field = docStock.createElement("n1:classificationType"): elem3Field.Text = Split(ctypos, ";")(1): elem2Field.appendChild elem3Field
+                        Set elem3Field = docStock.createElement("n1:classificationCategory"): elem3Field.Text = Split(ctypos, ";")(2): elem2Field.appendChild elem3Field
+                        Set elem3Field = docStock.createElement("n1:amount"): elem3Field.Text = Format(AJ, "######0.##"): elem2Field.appendChild elem3Field
+                        elemField.appendChild elem2Field
                             
                         .appendChild elemField
-                          
                         
+                        EGGTIM.MoveNext
+                        'Next
+                    Loop
+      
+                     gdb.Execute "UPDATE TIM SET AADEKAU=" + Replace(Format(SYN_KAU, "######0.#####"), ",", ".") + ",AADEFPA=" + Replace(Format(SYN_FPA, "######0.#####"), ",", ".") + " WHERE ID_NUM=" + Str(sqldt("ID_NUM"))
+  
+      
+                    '------------------------------------------------ InvoiceSummary
                         
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-
+                    Set elemField = docStock.createElement("invoiceSummary") ' δημιουργω εσοχ
+                    Set elem2Field = docStock.createElement("totalNetValue"): elem2Field.Text = Format(SYN_KAU, "######0.##"): elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("totalVatAmount"): elem2Field.Text = Format(SYN_FPA, "######0.##"): elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("totalWithheldAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            
+                    Set elem2Field = docStock.createElement("totalFeesAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("totalStampDutyAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                    Set elem2Field = docStock.createElement("totalOtherTaxesAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            
+                    Set elem2Field = docStock.createElement("totalDeductionsAmount"): elem2Field.Text = "0.00": elemField.appendChild elem2Field
+                            
+                    Set elem2Field = docStock.createElement("totalGrossValue"): elem2Field.Text = Format(SYN_KAU + SYN_FPA, "######0.##"): elemField.appendChild elem2Field
+                            
+                    Set elem2Field = docStock.createElement("incomeClassification") ' δημιουργω εσοχ' δημιουργω εσοχ
+                    Set elem3Field = docStock.createElement("n1:classificationType"): elem3Field.Text = Split(ctypos, ";")(1): elem2Field.appendChild elem3Field
+                    Set elem3Field = docStock.createElement("n1:classificationCategory"): elem3Field.Text = Split(ctypos, ";")(2): elem2Field.appendChild elem3Field
+                    Set elem3Field = docStock.createElement("n1:amount"): elem3Field.Text = Format(SYN_KAU, "######0.##"): elem2Field.appendChild elem3Field
+                    elemField.appendChild elem2Field
+                            
+                    .appendChild elemField
                     
                 End With  '--------------------------------------
+
                 .appendChild INVOICE
-           ' Next
+                
+                EGGTIM.Close
+                
+                sqldt.MoveNext
+            Loop
+
+            ' Next
         End With ' /////////////////////////////////////////////////////////////////////////////////////////////
+
         Set .documentElement = elemRoot
+
         On Error Resume Next
+
         Kill "C:\txtfiles\inv.xml"
+
         On Error GoTo 0
+        
+        FormatXmlDocument docStock ' βαζει κενα να ειναι ευκολο στο διαβασμα
+        
         .save "C:\txtfiles\inv.xml"
     End With
-    
 
-End Sub
+End Function
         
-        Sub TEST22()
-        
-
-        Dim I As Integer
-        Dim sumNet As Single
-        Dim sumFpa As Single
-        Dim ctypos As String
-
-        '======================================= ΠΕΡΠΑΤΑΩ ΤΟ ΤΙΜ ====================================
-        For I = 0 To sqlDT.Rows.Count - 1
-
-
-
-            If checkIntegrity(I) = False Then
-
-                MsgBox (" ΠΡΟΒΛΗΜΑ ΣΤΟ ΠΑΡΑΣΤΑΤΙΚΟ " + sqlDT(0)("ATIM").ToString)
-            End If
-
-
-
-            Dim EGGTIM As New DataTable
-            Me.Text = "ΠΑΡΑΣΤΑΤΙΚΑ " + Str(I)
-            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA,ISNULL(KAU_AJIA,0) AS KAU_AJIA,ISNULL(MIK_AJIA,0) AS MIK_AJIA FROM EGGTIM WHERE TIMM<>0 AND POSO<>0 AND ID_NUM=" + sqlDT(i)("ID_NUM").ToString, EGGTIM)
-            Dim DUM As New DataTable
-            ExecuteSQLQuery("UPDATE TIM SET ENTITY=" + Str(i + 1) + " WHERE ID_NUM=" + sqlDT(i)("ID_NUM").ToString, DUM)
-
-
-
-
-            sumNet = sqlDT(I)("aj1") + sqlDT(I)("aj2") + sqlDT(I)("aj3") + sqlDT(I)("aj4") + sqlDT(I)("aj5") + sqlDT(I)("aj6") + sqlDT(I)("aj7")
-            sumFpa = sqlDT(I)("fpa1") + sqlDT(I)("fpa2") + sqlDT(I)("fpa3") + sqlDT(I)("fpa4") + sqlDT(I)("fpa6") + sqlDT(I)("fpa7")
-
-            '1.1;E3_561_001;category1_1
-            ctypos = FINDTYPOS(Mid(sqlDT(I)("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
-            If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
-                writer.Close()
-                MsgBox ("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " + sqlDT(I)("ATIM"))
-                Exit Sub
-
-            End If
-
-
-            writer.WriteComment (sqlDT(I)("ATIM") + " " + Format(sqlDT(I)("HME"), "dd/MM/yyyy"))
-            writer.WriteStartElement ("invoice")
-            crNode("uid", Str(i + 1), writer)
-            'crNode("mark", "", writer)
-
-
-            '---------------------------------------------εκδοτης
-            writer.WriteStartElement ("issuer")
-            crNode("vatNumber", "028783755", writer)
-            crNode("country", "GR", writer)
-            crNode("branch", "0", writer)
-            ' writer.WriteStartElement("address")
-            ' crNode("postalCode", """66100""", writer)
-            ' crNode("city", """ΔΡΑΜΑ""", writer)
-            ' writer.WriteEndElement() '/address
-            writer.WriteEndElement() '/issuer
-
-            '--------------------------------------------- πελατης
-            If Mid(Split(ctypos, ";")(0), 1, 2) = "11" Then
-                'lianikh den xreiazetai pelaths
-            Else
-                ' End If
-                writer.WriteStartElement ("counterpart")
-                crNode("vatNumber", Trim(sqlDT(i)("AFM")), writer)  ' crNode("vatNumber", "026677115", writer)
-                crNode("country", "GR", writer)
-                crNode("branch", "0", writer)
-                writer.WriteStartElement ("address")
-                crNode("postalCode", """66100""", writer)  'crNode("postalCode", """66100""", writer)
-                crNode("city", sqlDT(i)("POL"), writer)  ' crNode("city", """ΔΡΑΜΑ""", writer)
-                writer.WriteEndElement() ' /address
-                writer.WriteEndElement() ' /counterpart
-            End If
-
-
-            '----------------------------------------------- header
-            writer.WriteStartElement ("invoiceHeader")
-            crNode("series", "0", writer)
-            crNode("aa", Mid(sqlDT(i)("ATIM"), 2, 6), writer)   '  crNode("aa", "15", writer)
-            crNode("issueDate", Format(sqlDT(i)("hme"), "yyyy-MM-dd"), writer) ' crNode("issueDate", "2019-12-15", writer)
-
-
-            'ctypos = FINDTYPOS(Mid(sqlDT(i)("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
-            'If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
-            '    writer.Close()
-            '    MsgBox("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " + sqlDT(i)("ATIM"))
-            '    Exit Function
-
-            'End If
-
-
-            crNode("invoiceType", Split(ctypos, ";")(0), writer)   ' ειδος παραστατικού
-            crNode("currency", "EUR", writer)
-            crNode("exchangeRate", "1.0", writer)
-            writer.WriteEndElement() ' /invoiceHeader
-
-            '          <paymentMethods>
-            '   <paymentMethodDetails>
-            '       <type>3</type>
-            '       <amount>66.53</amount>
-            '   </paymentMethodDetails>
-            '</paymentMethods>
-            '----------------------------------------------- paymentMethods
-            writer.WriteStartElement ("paymentMethods")
-            writer.WriteStartElement ("paymentMethodDetails")
-            Dim cTrp As String = FindTRP(Mid(sqlDT(i)("TRP"), 1, 1))
-            If Len(cTrp) = 0 Then
-                MsgBox ("ΔΕΝ ΕΧΩ ΑΝΤΙΣΤΟΙΧΙΣΗ ΣΤΟΝ ΤΡΟΠΟ ΠΛΗΡΩΜΗΣ " + sqlDT(I)("TRP"))
-                writer.Close()
-                Exit Sub
-            End If
-            crNode("type", cTrp, writer)
-            crNode("amount", Format(sumNet + sumFpa, "######0.##"), writer)   '  crNode("aa", "15", writer)
-
-            writer.WriteEndElement() ' /paymentMethodDetails
-            writer.WriteEndElement() ' /paymentMethods
-
-
-            Dim SYN_KAU, SYN_FPA As Double
-            SYN_KAU = 0
-            SYN_FPA = 0
-            Dim fpaRow As Double
-
-            '======================================= ΠΕΡΠΑΤΑΩ ΤΟ EGGΤΙΜ ====================================
-            For L As Integer = 0 To EGGTIM.Rows.Count - 1
-
-                Dim AJ As Single
-                If IsDBNull(EGGTIM(L)("TIMM")) Then
-                    AJ = 0
-                Else
-                    AJ = EGGTIM(L)("KAU_AJIA")  ' Math.Round(EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100), 2)
-                End If
-
-                Dim VAT As String
-                '1 ΦΠΑ συντελεστής 24% 24%
-                '2 ΦΠΑ συντελεστής 13% 13%
-                '3 ΦΠΑ συντελεστής 6% 6%
-                '4 ΦΠΑ συντελεστής 17% 17%
-                '5 ΦΠΑ συντελεστής 9% 9%
-                '6 ΦΠΑ συντελεστής 4% 4%
-                '7 ’νευ Φ.Π.Α. 0%
-                '8 Εγγραφές χωρίς ΦΠΑ  (πχ Μισθοδοσία, Αποσβέσεις)
-
-
-
-                If EGGTIM(L)("FPA") = 1 Then '13%
-                    VAT = "2"
-                    SYN_KAU = SYN_KAU + AJ
-                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA") ' AJ * 0.13
-                    SYN_FPA = SYN_FPA + fpaRow
-
-                    'ElseIf EGGTIM(L)("FPA") = 2 Then
-                    '   VAT = "1"
-                ElseIf EGGTIM(L)("FPA") = 2 Then
-                    VAT = "1"
-                    SYN_KAU = SYN_KAU + AJ
-                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA") 'AJ * 0.24
-                    SYN_FPA = SYN_FPA + fpaRow
-
-                    ' SYN_FPA = SYN_FPA + AJ * 0.24
-
-                ElseIf EGGTIM(L)("FPA") = 5 Then
-                    VAT = "7"
-                    SYN_KAU = SYN_KAU + AJ
-                    fpaRow = 0
-                    SYN_FPA = SYN_FPA + fpaRow
-
-                ElseIf EGGTIM(L)("FPA") = 6 Then
-                    VAT = "1"
-                    SYN_KAU = SYN_KAU + AJ
-                    ' SYN_FPA = SYN_FPA + AJ * 0.24
-
-                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA")  ' AJ * 0.24
-                    SYN_FPA = SYN_FPA + fpaRow
-
-
-
-
-                ElseIf EGGTIM(L)("FPA") = 4 Then
-                    VAT = "4"
-                    SYN_KAU = SYN_KAU + AJ
-                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA")  ' AJ * 0.06
-                    SYN_FPA = SYN_FPA + fpaRow
-                Else ' If EGGTIM(L)("FPA") = 2 Then
-                    VAT = "1"
-                End If
-                '-----------------------------------------------  invoiceDetails
-                writer.WriteStartElement ("invoiceDetails")
-                crNode("lineNumber", Str(L + 1), writer) '  crNode("lineNumber", "1", writer)
-                '    crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
-                '    crNode("measurementUnit", "1", writer)
-                crNode("netValue", Format(AJ, "######0.##"), writer)  ' crNode("netValue", "100", writer)
-
-                crNode("vatCategory", VAT, writer) '1=24%   2=13%
-
-                crNode("vatAmount", Format(fpaRow, "######0.##"), writer)  ' c
-
-                If fpaRow = 0 Then
-
-                    crNode("vatExemptionCategory", "1", writer) 'APALAGIFPA
-
-                End If
-
-                writer.WriteStartElement ("incomeClassification")
-                crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
-                crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
-                crNode("N1:amount", Format(AJ, "######0.##"), writer)
-
-                writer.WriteEndElement() '/incomeClassification
-
-
-
-
-
-                '                <invoiceDetails>
-                '  <lineNumber> 1</lineNumber>
-                '  <netValue>1185</netValue>
-                '  <vatCategory>7</vatCategory>
-                '  <vatAmount>0</vatAmount>
-                '<vatExemptionCategory>1</vatExemptionCategory>
-                '  <incomeClassification>
-                '    <N1:classificationType> E3_561_001</N1:classificationType>
-                '    <N1:classificationCategory>category1_1</N1:classificationCategory>
-                '    <N1:amount> 1185</N1:amount>
-                '  </incomeClassification>
-
-                '</invoiceDetails>
-
-
-
-                '               <incomeClassification>
-                '<N1:classificationType> E3_561_001</N1:classificationType>
-                '            <N1:classificationCategory>category1_1</N1:classificationCategory>
-                '<N1:amount> 100.0</N1:amount>
-                '    </incomeClassification>
-
-
-                writer.WriteEndElement()   ' /invoiceDetails
-            Next
-
-            ExecuteSQLQuery "UPDATE TIM SET AADEKAU=" + Replace(Format(SYN_KAU, "######0.#####"), ",", ".") + ",AADEFPA=" + Replace(Format(SYN_FPA, "######0.#####"), ",", ".") + " WHERE ID_NUM=" + sqlDT(I)("ID_NUM").ToString, DUM
-            '------------------------------------------------ InvoiceSummary
-            writer.WriteStartElement ("invoiceSummary")
-            crNode("totalNetValue", Format(SYN_KAU, "######0.##"), writer)  ' crNode("totalNetValue", "100", writer)
-            crNode("totalVatAmount", Format(SYN_FPA, "######0.##"), writer)  '  crNode("totalVatAmount", "24", writer)
-            crNode("totalWithheldAmount", "0", writer)
-            crNode("totalFeesAmount", "0", writer)
-            crNode("totalStampDutyAmount", "0", writer)
-            crNode("totalOtherTaxesAmount", "0", writer)
-            crNode("totalDeductionsAmount", "0", writer)
-            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "######0.##"), writer)
-
-
-            writer.WriteStartElement ("incomeClassification")
-            crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
-            crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
-            crNode("N1:amount", Format(SYN_KAU, "######0.##"), writer)
-            writer.WriteEndElement() '  /invoicesummary
-
-
-
-
-            writer.WriteEndElement() '  /invoicesummary
-            '=========================================================
-            writer.WriteEndElement() ' / Invoice
-
-        Next
-
-
-
-
-
-        writer.WriteEndElement() 'InvoicesDoc
-
-
-
-
-
-
-
-
-        writer.WriteEndDocument()
-        writer.Close()
-        '  MsgBox("ok")
-
-
-        ListBox2.Items.Clear()
-
-
-
-        '------ τοπικος ελεγχος xml που τον καταργησα γιατι μπηκε και το "https://www.aade.gr/myDATA/incomeClassificaton/v1.0
-        'FileOpen(1, "C:\TXTFILES\CHECKXSD.TXT", OpenMode.Output)
-        ''        Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        'Dim myDocument As New XmlDocument
-        'myDocument.Load(ff) ' m_filename)  ' "C:\somefile.xml"
-        'myDocument.Schemas.Axmlns:N1dd("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\invoicesDoc-v0.6.xsd") 'namespace here or empty string
-        'Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
-        'myDocument.Validate(eventHandler)
-        ''       MsgBox("ok ελεγχος")
-        'For n As Integer = 0 To ListBox2.Items.Count - 1
-        '    PrintLine(1, ListBox2.Items(n).ToString)
-        'Next
-        'FileClose(1)
-
-
-
-
-
-
-        paint_ergasies(DataGridView1, "SELECT   ATIM,HME,ENTITY,AADEKAU,AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 AS KAUTIM,AADEFPA,FPA1+FPA2+FPA3+FPA4+FPA6+FPA7 AS FPATIM,ENTITYUID,ENTITYMARK FROM TIM WHERE ENTITY>0")
-
-    End Sub
+'        Sub TEST22()
+'
+'
+'        Dim I As Integer
+'        Dim sumNet As Single
+'        Dim sumFpa As Single
+'        Dim ctypos As String
+'
+'        '======================================= ΠΕΡΠΑΤΑΩ ΤΟ ΤΙΜ ====================================
+'        For I = 0 To sqldt.Rows.Count - 1
+'
+'
+'
+'            If checkIntegrity(I) = False Then
+'
+'                MsgBox (" ΠΡΟΒΛΗΜΑ ΣΤΟ ΠΑΡΑΣΤΑΤΙΚΟ " + sqldt(0)("ATIM").ToString)
+'            End If
+'
+'
+'
+'            Dim EGGTIM As New DataTable
+'            Me.Text = "ΠΑΡΑΣΤΑΤΙΚΑ " + Str(I)
+'            ExecuteSQLQuery("SELECT KODE,POSO,TIMM,EKPT,FPA,ISNULL(KAU_AJIA,0) AS KAU_AJIA,ISNULL(MIK_AJIA,0) AS MIK_AJIA FROM EGGTIM WHERE TIMM<>0 AND POSO<>0 AND ID_NUM=" +SQLDT("ID_NUM").ToString, EGGTIM)
+'            Dim DUM As New DataTable
+'            ExecuteSQLQuery("UPDATE TIM SET ENTITY=" + Str(i + 1) + " WHERE ID_NUM=" +SQLDT("ID_NUM").ToString, DUM)
+'
+'
+'
+'
+'            sumNet = sqldt("aj1") + sqldt("aj2") + sqldt("aj3") + sqldt("aj4") + sqldt("aj5") + sqldt("aj6") + sqldt("aj7")
+'            sumFpa = sqldt("fpa1") + sqldt("fpa2") + sqldt("fpa3") + sqldt("fpa4") + sqldt("fpa6") + sqldt("fpa7")
+'
+'            '1.1;E3_561_001;category1_1
+'            ctypos = FINDTYPOS(Mid(sqldt(I)("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
+'            If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
+'                writer.Close()
+'                MsgBox ("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " + sqldt("ATIM"))
+'                Exit Sub
+'
+'            End If
+'
+'
+'            writer.WriteComment (sqldt(I)("ATIM") + " " + Format(sqldt(I)("HME"), "dd/MM/yyyy"))
+'            writer.WriteStartElement ("invoice")
+'            crNode("uid", Str(i + 1), writer)
+'            'crNode("mark", "", writer)
+'
+'
+'            '---------------------------------------------εκδοτης
+'            writer.WriteStartElement ("issuer")
+'            crNode("vatNumber", "028783755", writer)
+'            crNode("country", "GR", writer)
+'            crNode("branch", "0", writer)
+'            ' writer.WriteStartElement("address")
+'            ' crNode("postalCode", """66100""", writer)
+'            ' crNode("city", """ΔΡΑΜΑ""", writer)
+'            ' writer.WriteEndElement() '/address
+'            writer.WriteEndElement() '/issuer
+'
+'            '--------------------------------------------- πελατης
+'            If Mid(Split(ctypos, ";")(0), 1, 2) = "11" Then
+'                'lianikh den xreiazetai pelaths
+'            Else
+'                ' End If
+'                writer.WriteStartElement ("counterpart")
+'                crNode("vatNumber", Trim(sqlDT(i)("AFM")), writer)  ' crNode("vatNumber", "026677115", writer)
+'                crNode("country", "GR", writer)
+'                crNode("branch", "0", writer)
+'                writer.WriteStartElement ("address")
+'                crNode("postalCode", """66100""", writer)  'crNode("postalCode", """66100""", writer)
+'                crNode("city",SQLDT("POL"), writer)  ' crNode("city", """ΔΡΑΜΑ""", writer)
+'                writer.WriteEndElement() ' /address
+'                writer.WriteEndElement() ' /counterpart
+'            End If
+'
+'
+'            '----------------------------------------------- header
+'            writer.WriteStartElement ("invoiceHeader")
+'            crNode("series", "0", writer)
+'            crNode("aa", Mid(sqlDT(i)("ATIM"), 2, 6), writer)   '  crNode("aa", "15", writer)
+'            crNode("issueDate", Format(sqlDT(i)("hme"), "yyyy-MM-dd"), writer) ' crNode("issueDate", "2019-12-15", writer)
+'
+'
+'            'ctypos = FINDTYPOS(Mid(sqlDT(i)("ATIM"), 1, 1)) ' Split(tmpStr, ":")(0)
+'            'If Len(Trim(Split(ctypos, ";")(1))) = 0 Or Len(Trim(Split(ctypos, ";")(2))) = 0 Then
+'            '    writer.Close()
+'            '    MsgBox("δεν εχουν ορισθει παραμετροι ΜΥDATA στο παρ/κό " +SQLDT("ATIM"))
+'            '    Exit Function
+'
+'            'End If
+'
+'
+'            crNode("invoiceType", Split(ctypos, ";")(0), writer)   ' ειδος παραστατικού
+'            crNode("currency", "EUR", writer)
+'            crNode("exchangeRate", "1.0", writer)
+'            writer.WriteEndElement() ' /invoiceHeader
+'
+'            '          <paymentMethods>
+'            '   <paymentMethodDetails>
+'            '       <type>3</type>
+'            '       <amount>66.53</amount>
+'            '   </paymentMethodDetails>
+'            '</paymentMethods>
+'            '----------------------------------------------- paymentMethods
+'            writer.WriteStartElement ("paymentMethods")
+'            writer.WriteStartElement ("paymentMethodDetails")
+'            Dim cTrp As String = FindTRP(Mid(sqlDT(i)("TRP"), 1, 1))
+'            If Len(cTrp) = 0 Then
+'                MsgBox ("ΔΕΝ ΕΧΩ ΑΝΤΙΣΤΟΙΧΙΣΗ ΣΤΟΝ ΤΡΟΠΟ ΠΛΗΡΩΜΗΣ " + sqldt("TRP"))
+'                writer.Close()
+'                Exit Sub
+'            End If
+'            crNode("type", cTrp, writer)
+'            crNode("amount", Format(sumNet + sumFpa, "######0.##"), writer)   '  crNode("aa", "15", writer)
+'
+'            writer.WriteEndElement() ' /paymentMethodDetails
+'            writer.WriteEndElement() ' /paymentMethods
+'
+'
+'            Dim SYN_KAU, SYN_FPA As Double
+'            SYN_KAU = 0
+'            SYN_FPA = 0
+'            Dim fpaRow As Double
+'
+'            '======================================= ΠΕΡΠΑΤΑΩ ΤΟ EGGΤΙΜ ====================================
+'            For L As Integer = 0 To EGGTIM.Rows.Count - 1
+'
+'                Dim AJ As Single
+'                If IsDBNull(EGGTIM(L)("TIMM")) Then
+'                    AJ = 0
+'                Else
+'                    AJ = EGGTIM(L)("KAU_AJIA")  ' Math.Round(EGGTIM(L)("POSO") * EGGTIM(L)("TIMM") * (1 - EGGTIM(L)("EKPT") / 100), 2)
+'                End If
+'
+'                Dim VAT As String
+'                '1 ΦΠΑ συντελεστής 24% 24%
+'                '2 ΦΠΑ συντελεστής 13% 13%
+'                '3 ΦΠΑ συντελεστής 6% 6%
+'                '4 ΦΠΑ συντελεστής 17% 17%
+'                '5 ΦΠΑ συντελεστής 9% 9%
+'                '6 ΦΠΑ συντελεστής 4% 4%
+'                '7 ’νευ Φ.Π.Α. 0%
+'                '8 Εγγραφές χωρίς ΦΠΑ  (πχ Μισθοδοσία, Αποσβέσεις)
+'
+'
+'
+'                If EGGTIM(L)("FPA") = 1 Then '13%
+'                    VAT = "2"
+'                    SYN_KAU = SYN_KAU + AJ
+'                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA") ' AJ * 0.13
+'                    SYN_FPA = SYN_FPA + fpaRow
+'
+'                    'ElseIf EGGTIM(L)("FPA") = 2 Then
+'                    '   VAT = "1"
+'                ElseIf EGGTIM(L)("FPA") = 2 Then
+'                    VAT = "1"
+'                    SYN_KAU = SYN_KAU + AJ
+'                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA") 'AJ * 0.24
+'                    SYN_FPA = SYN_FPA + fpaRow
+'
+'                    ' SYN_FPA = SYN_FPA + AJ * 0.24
+'
+'                ElseIf EGGTIM(L)("FPA") = 5 Then
+'                    VAT = "7"
+'                    SYN_KAU = SYN_KAU + AJ
+'                    fpaRow = 0
+'                    SYN_FPA = SYN_FPA + fpaRow
+'
+'                ElseIf EGGTIM(L)("FPA") = 6 Then
+'                    VAT = "1"
+'                    SYN_KAU = SYN_KAU + AJ
+'                    ' SYN_FPA = SYN_FPA + AJ * 0.24
+'
+'                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA")  ' AJ * 0.24
+'                    SYN_FPA = SYN_FPA + fpaRow
+'
+'
+'
+'
+'                ElseIf EGGTIM(L)("FPA") = 4 Then
+'                    VAT = "4"
+'                    SYN_KAU = SYN_KAU + AJ
+'                    fpaRow = EGGTIM(L)("MIK_AJIA") - EGGTIM(L)("KAU_AJIA")  ' AJ * 0.06
+'                    SYN_FPA = SYN_FPA + fpaRow
+'                Else ' If EGGTIM(L)("FPA") = 2 Then
+'                    VAT = "1"
+'                End If
+'                '-----------------------------------------------  invoiceDetails
+'                writer.WriteStartElement ("invoiceDetails")
+'                crNode("lineNumber", Str(L + 1), writer) '  crNode("lineNumber", "1", writer)
+'                '    crNode("quantity", EGGTIM(L)("POSO").ToString, writer)
+'                '    crNode("measurementUnit", "1", writer)
+'                crNode("netValue", Format(AJ, "######0.##"), writer)  ' crNode("netValue", "100", writer)
+'
+'                crNode("vatCategory", VAT, writer) '1=24%   2=13%
+'
+'                crNode("vatAmount", Format(fpaRow, "######0.##"), writer)  ' c
+'
+'                If fpaRow = 0 Then
+'
+'                    crNode("vatExemptionCategory", "1", writer) 'APALAGIFPA
+'
+'                End If
+'
+'                writer.WriteStartElement ("incomeClassification")
+'                crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
+'                crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
+'                crNode("N1:amount", Format(AJ, "######0.##"), writer)
+'
+'                writer.WriteEndElement() '/incomeClassification
+'
+'
+'
+'
+'
+'                '                <invoiceDetails>
+'                '  <lineNumber> 1</lineNumber>
+'                '  <netValue>1185</netValue>
+'                '  <vatCategory>7</vatCategory>
+'                '  <vatAmount>0</vatAmount>
+'                '<vatExemptionCategory>1</vatExemptionCategory>
+'                '  <incomeClassification>
+'                '    <N1:classificationType> E3_561_001</N1:classificationType>
+'                '    <N1:classificationCategory>category1_1</N1:classificationCategory>
+'                '    <N1:amount> 1185</N1:amount>
+'                '  </incomeClassification>
+'
+'                '</invoiceDetails>
+'
+'
+'
+'                '               <incomeClassification>
+'                '<N1:classificationType> E3_561_001</N1:classificationType>
+'                '            <N1:classificationCategory>category1_1</N1:classificationCategory>
+'                '<N1:amount> 100.0</N1:amount>
+'                '    </incomeClassification>
+'
+'
+'                writer.WriteEndElement()   ' /invoiceDetails
+'            Next
+'
+'            ExecuteSQLQuery "UPDATE TIM SET AADEKAU=" + Replace(Format(SYN_KAU, "######0.#####"), ",", ".") + ",AADEFPA=" + Replace(Format(SYN_FPA, "######0.#####"), ",", ".") + " WHERE ID_NUM=" + sqldt("ID_NUM").ToString, DUM
+'            '------------------------------------------------ InvoiceSummary
+'            writer.WriteStartElement ("invoiceSummary")
+'            crNode("totalNetValue", Format(SYN_KAU, "######0.##"), writer)  ' crNode("totalNetValue", "100", writer)
+'            crNode("totalVatAmount", Format(SYN_FPA, "######0.##"), writer)  '  crNode("totalVatAmount", "24", writer)
+'            crNode("totalWithheldAmount", "0", writer)
+'            crNode("totalFeesAmount", "0", writer)
+'            crNode("totalStampDutyAmount", "0", writer)
+'            crNode("totalOtherTaxesAmount", "0", writer)
+'            crNode("totalDeductionsAmount", "0", writer)
+'            crNode("totalGrossValue", Format(SYN_KAU + SYN_FPA, "######0.##"), writer)
+'
+'
+'            writer.WriteStartElement ("incomeClassification")
+'            crNode("N1:classificationType", Split(ctypos, ";")(1), writer)
+'            crNode("N1:classificationCategory", Split(ctypos, ";")(2), writer)
+'            crNode("N1:amount", Format(SYN_KAU, "######0.##"), writer)
+'            writer.WriteEndElement() '  /invoicesummary
+'
+'
+'
+'
+'            writer.WriteEndElement() '  /invoicesummary
+'            '=========================================================
+'            writer.WriteEndElement() ' / Invoice
+'
+'        Next
+'
+'
+'
+'
+'
+'        writer.WriteEndElement() 'InvoicesDoc
+'
+'
+'
+'
+'
+'
+'
+'
+'        writer.WriteEndDocument()
+'        writer.Close()
+'        '  MsgBox("ok")
+'
+'
+'        ListBox2.Items.Clear()
+'
+'
+'
+'        '------ τοπικος ελεγχος xml που τον καταργησα γιατι μπηκε και το "https://www.aade.gr/myDATA/incomeClassificaton/v1.0
+'        'FileOpen(1, "C:\TXTFILES\CHECKXSD.TXT", OpenMode.Output)
+'        ''        Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+'        'Dim myDocument As New XmlDocument
+'        'myDocument.Load(ff) ' m_filename)  ' "C:\somefile.xml"
+'        'myDocument.Schemas.Axmlns:N1dd("http://www.aade.gr/myDATA/invoice/v1.0", "c:\txtfiles\invoicesDoc-v0.6.xsd") 'namespace here or empty string
+'        'Dim eventHandler As ValidationEventHandler = New ValidationEventHandler(AddressOf ValidationEventHandler)
+'        'myDocument.Validate(eventHandler)
+'        ''       MsgBox("ok ελεγχος")
+'        'For n As Integer = 0 To ListBox2.Items.Count - 1
+'        '    PrintLine(1, ListBox2.Items(n).ToString)
+'        'Next
+'        'FileClose(1)
+'
+'
+'
+'
+'
+'
+'        paint_ergasies(DataGridView1, "SELECT   ATIM,HME,ENTITY,AADEKAU,AJ1+AJ2+AJ3+AJ4+AJ5+AJ6+AJ7 AS KAUTIM,AADEFPA,FPA1+FPA2+FPA3+FPA4+FPA6+FPA7 AS FPATIM,ENTITYUID,ENTITYMARK FROM TIM WHERE ENTITY>0")
+'
+'    End Sub
 
 Sub ExecuteSQLQuery(SQL As String, ByRef RR As ADODB.Recordset)
     If InStr(UCase(SQL), "SELECT") > 0 Then
-        RR.Open SQL, gdb, adOpenDynamic, adLockOptimistic
+        RR.open SQL, gdb, adOpenDynamic, adLockOptimistic
     
     Else  ' EXECUTE
     
@@ -1130,38 +1361,40 @@ Function Get_AJ_ASCII(ByRef pol As String, ByVal polepis As String, ByVal ago As
         '   Set db = OpenDatabase(gDir, False, False, gConnect)
         'End If
 Dim sqlDT2 As New ADODB.Recordset
-        ExecuteSQLQuery "select POL,EIDOS,AJIA_APOU from PARASTAT", sqlDT2
+       sqlDT2.open "select POL,EIDOS,AJIA_APOU from PARASTAT", gdb, adOpenDynamic, adLockOptimistic
 
         pol = " "
 
         Dim row As Integer
-        For row = 0 To sqlDT2.Rows.Count - 1
+        Do While Not sqlDT2.EOF
+           ' For row = 0 To sqlDT2.Rows.Count - 1
 
-            If IsDBNull(sqlDT2.Rows(row)("eidos")) Or IsDBNull(sqlDT2.Rows(row)("pol")) Or IsDBNull(sqlDT2.Rows(row)("ajia_apou")) Then
+            If IsNull(sqlDT2("eidos")) Or IsNull(sqlDT2("pol")) Or IsNull(sqlDT2("ajia_apou")) Then
 
             Else
 
-                If sqlDT2.Rows(row)("pol") = "1" And sqlDT2.Rows(row)("ajia_apou") = "3" Then
-                    pol = pol + "'" + sqlDT2.Rows(row)("eidos") + "',"
+                If sqlDT2("pol") = "1" And sqlDT2("ajia_apou") = "3" Then
+                    pol = pol + "'" + sqlDT2("eidos") + "',"
                 End If
 
-                If sqlDT2.Rows(row)("pol") = "1" And sqlDT2.Rows(row)("ajia_apou") = "4" Then
-                    polepis = polepis + "'" + sqlDT2.Rows(row)("eidos") + "',"
+                If sqlDT2("pol") = "1" And sqlDT2("ajia_apou") = "4" Then
+                    polepis = polepis + "'" + sqlDT2("eidos") + "',"
                 End If
 
-                If sqlDT2.Rows(row)("pol") = "2" And sqlDT2.Rows(row)("ajia_apou") = "1" Then
-                    ago = ago + "'" + sqlDT2.Rows(row)("eidos") + "',"
+                If sqlDT2("pol") = "2" And sqlDT2("ajia_apou") = "1" Then
+                    ago = ago + "'" + sqlDT2("eidos") + "',"
                 End If
 
-                If sqlDT2.Rows(row)("pol") = "2" And sqlDT2.Rows(row)("ajia_apou") = "2" Then
-                    AGOEPIS = AGOEPIS + "'" + sqlDT2.Rows(row)("eidos") + "',"
+                If sqlDT2("pol") = "2" And sqlDT2("ajia_apou") = "2" Then
+                    AGOEPIS = AGOEPIS + "'" + sqlDT2("eidos") + "',"
                 End If
 
-
+DoEvents
 
 
             End If
-        Next
+            sqlDT2.MoveNext
+        Loop  'Next
 
 240:    pol = Mid(pol, 1, Len(pol) - 1)
 
@@ -1185,5 +1418,40 @@ Dim sqlDT2 As New ADODB.Recordset
     End Function
 
 Private Sub Form_Load()
-  gdb.Open "DSN=MERCSQL"
+  gdb.open "DSN=MERCSQL;DATABASE=EMPMYDATA"
 End Sub
+
+
+
+  Function FINDTYPOS(C As String) As String
+        Dim sqlDT4 As New ADODB.Recordset
+        sqlDT4.open "select ETIK from PARASTAT where EIDOS='" + C + "'", gdb, adOpenDynamic, adLockOptimistic
+        If IsNull(sqlDT4(0)) Then
+            FINDTYPOS = ""
+        Else
+            FINDTYPOS = sqlDT4(0)
+        End If
+
+
+        FINDTYPOS = Trim(FINDTYPOS)
+
+        ' If InStr(FINDTYPOS, ";") = 0 Then
+        FINDTYPOS = FINDTYPOS + ";;" ' gia na mhn skaei to split()
+        ' Else
+
+
+        ' End If
+
+
+    End Function
+    Function FindTRP(C As String) As String
+        Dim sqlDT4 As New ADODB.Recordset
+        sqlDT4.open "select N1 from PINAKES where TYPOS=12 AND  AYJON=" + C + "", gdb, adOpenDynamic, adLockOptimistic
+        If IsNull(sqlDT4(0)) Then
+            FindTRP = ""
+        Else
+            FindTRP = sqlDT4(0)
+        End If
+
+    End Function
+
