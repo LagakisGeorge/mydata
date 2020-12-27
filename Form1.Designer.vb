@@ -40,6 +40,7 @@ Partial Class Form1
         Me.CancInv = New System.Windows.Forms.Button()
         Me.RequestTransmittedDocs = New System.Windows.Forms.Button()
         Me.Button7 = New System.Windows.Forms.Button()
+        Me.Button8 = New System.Windows.Forms.Button()
         CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -210,11 +211,21 @@ Partial Class Form1
         Me.Button7.Text = "Button7"
         Me.Button7.UseVisualStyleBackColor = True
         '
+        'Button8
+        '
+        Me.Button8.Location = New System.Drawing.Point(880, 497)
+        Me.Button8.Name = "Button8"
+        Me.Button8.Size = New System.Drawing.Size(264, 23)
+        Me.Button8.TabIndex = 18
+        Me.Button8.Text = "διαβαζει τα τιμολογια προμηθευτων"
+        Me.Button8.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1203, 661)
+        Me.Controls.Add(Me.Button8)
         Me.Controls.Add(Me.Button7)
         Me.Controls.Add(Me.RequestTransmittedDocs)
         Me.Controls.Add(Me.CancInv)
@@ -258,4 +269,5 @@ Partial Class Form1
     Friend WithEvents CancInv As Button
     Friend WithEvents RequestTransmittedDocs As Button
     Friend WithEvents Button7 As Button
+    Friend WithEvents Button8 As Button
 End Class

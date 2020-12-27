@@ -64,7 +64,7 @@ Public Class Form1
             Dim uri = "https://mydata-dev.azure-api.net/SendInvoices" ' + queryString.ToString
 
             Dim response As HttpResponseMessage
-            Dim xl = XDocument.Load("c:\txtfiles\inv.xml").ToString ' "--> εκει έχω αποθηκεύσει το xml που εφτιαξα"
+            Dim xl As String = XDocument.Load("c:\txtfiles\inv.xml").ToString ' "--> εκει έχω αποθηκεύσει το xml που εφτιαξα"
             Dim byteData As Byte() = Encoding.UTF8.GetBytes(xl)
 
             Using content = New ByteArrayContent(byteData)
@@ -1328,13 +1328,13 @@ Public Class Form1
         queryString("mark") = cc  ' "1000000006337" ' "{string}"
         '  queryString("nextPartitionKey") = "{string}"
         '   queryString("nextRowKey") = "{string}"
-        Dim uri = "https://mydata-dev.azure-api.net/RequestIssuerInvoices?" & queryString.ToString
+        Dim uri = "https://mydata-dev.azure-api.net/RequestDocs?" & queryString.ToString
 
         Dim response = Await client.GetAsync(uri)
         Dim result = Await response.Content.ReadAsStringAsync()
         TextBox2.Text = result.ToString
 
-        Dim MF = "c:\txtfiles\apantReqInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+        Dim MF = "c:\txtfiles\apantReqtome.xml"  'Inv" + Format(Now, "yyyyddMMHHmm") + ".xml"
         FileOpen(1, MF, OpenMode.Output)
         PrintLine(1, result.ToString)
         FileClose(1)
@@ -1429,6 +1429,9 @@ Public Class Form1
 
         Dim xmlDoc As New XmlDocument()
         xmlDoc.Load("C:\TXTFILES\apantiNCOMe.xml")
+
+
+
         Dim nodes As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("/ResponseDoc/response")
 
         'ExecuteSQLQuery("delete from oc_category_filter")
@@ -1693,6 +1696,25 @@ Public Class Form1
         Next
 
 
+
+    End Sub
+
+    Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
+        Dim xmlDoc As New XmlDocument()
+        xmlDoc.Load("C:\TXTFILES\apantReqtome.xml") 'C:\TXTFILES\apantSendInv.xml")
+        Dim nodes As XmlNodeList = xmlDoc.DocumentElement.SelectNodes("*")
+
+        'ExecuteSQLQuery("delete from oc_category_filter")
+        Me.Text = "Ελεγχος αριθμου εγγραφών"
+        Application.DoEvents()
+
+        Dim NF As Long = 0
+        For Each node As XmlNode In nodes
+            NF = NF + 1
+            Me.Text = node.InnerText
+        Next
+        Application.DoEvents()
+        Me.Text = NF
 
     End Sub
 End Class
