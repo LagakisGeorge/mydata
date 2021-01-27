@@ -34,3 +34,15 @@ C:\vb2019\mydata\obj\Debug\mydatavb1.vbproj.CoreCompileInputs.cache
 C:\vb2019\mydata\obj\Debug\mydatavb1.exe
 C:\vb2019\mydata\obj\Debug\mydatavb1.xml
 C:\vb2019\mydata\obj\Debug\mydatavb1.pdb
+C:\MYDATA\bin\Debug\mydatavb1.exe.config
+C:\MYDATA\bin\Debug\mydatavb1.exe
+C:\MYDATA\bin\Debug\mydatavb1.pdb
+C:\MYDATA\bin\Debug\mydatavb1.xml
+C:\MYDATA\obj\Debug\mydatavb1.vbprojAssemblyReference.cache
+C:\MYDATA\obj\Debug\mydatavb1.Form1.resources
+C:\MYDATA\obj\Debug\mydatavb1.Resources.resources
+C:\MYDATA\obj\Debug\mydatavb1.vbproj.GenerateResource.cache
+C:\MYDATA\obj\Debug\mydatavb1.vbproj.CoreCompileInputs.cache
+C:\MYDATA\obj\Debug\mydatavb1.exe
+C:\MYDATA\obj\Debug\mydatavb1.xml
+C:\MYDATA\obj\Debug\mydatavb1.pdb

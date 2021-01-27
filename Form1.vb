@@ -1312,10 +1312,10 @@ Public Class Form1
     End Sub
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        If checkServer(0) Then
+        '   If checkServer(0) Then
 
-        End If
-        paint_ergasies(DataGridView1, "Select ATIM, HME, ENTITY, AADEKAU, AJ1 + AJ2 + AJ3 + AJ4 + AJ5 + AJ6 + AJ7 As KAUTIM, AADEFPA, FPA1 + FPA2 + FPA3 + FPA4 + FPA6 + FPA7 As FPATIM, ENTITYUID, ENTITYMARK FROM TIM WHERE ENTITY>0")
+        '   End If
+        ' paint_ergasies(DataGridView1, "Select ATIM, HME, ENTITY, AADEKAU, AJ1 + AJ2 + AJ3 + AJ4 + AJ5 + AJ6 + AJ7 As KAUTIM, AADEFPA, FPA1 + FPA2 + FPA3 + FPA4 + FPA6 + FPA7 As FPATIM, ENTITYUID, ENTITYMARK FROM TIM WHERE ENTITY>0")
     End Sub
 
     ' Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
@@ -1715,6 +1715,133 @@ Public Class Form1
         Next
         Application.DoEvents()
         Me.Text = NF
+
+    End Sub
+
+    Private Sub Button9_Click(sender As Object, e As EventArgs) Handles Button9.Click
+        ' SKROUTZ()
+        SKROUTZ_MakeRequest()
+        '      curl -X POST https: //www.skroutz.gr/oauth2/token\?\
+        'client_id \= your_client_id \&\
+        'client_secret\=your_client_secret\&\
+        'grant_type \= client_credentials \&\
+        'scope\=Public
+
+    End Sub
+
+    Private Async Sub SKROUTZ_MakeRequest()
+
+        Dim client = New HttpClient()
+
+        Try
+            client.DefaultRequestHeaders.Add("client_id", "netbox")
+
+            client.DefaultRequestHeaders.Add("client_secret", "xobten1524571846")
+            client.DefaultRequestHeaders.Add("grant_type", "RaXm-jKHWHAK0P-tws0RVhgMjyfYTzH4-HsZboRJHubXZODRTi4FtRR8SVW7R82oDgRw6EFtIFxW3E5Yh9gxhg==")
+            client.DefaultRequestHeaders.Add("scope", "public")
+
+
+
+
+            Dim uri = "https://api.skroutz.gr/search?q=apple"  'hwww.skroutz.gr/oauth2/token\?"
+
+
+
+
+
+
+
+            Dim response As HttpResponseMessage
+            Dim xl As String = XDocument.Load("c:\txtfiles\inv.xml").ToString ' "--> εκει έχω αποθηκεύσει το xml που εφτιαξα"
+            Dim byteData As Byte() = Encoding.UTF8.GetBytes(xl)
+
+            ' Dim response As HttpResponseMessage
+            'response = Await client.PostAsync(uri, "")
+
+
+            response = Await client.GetAsync(uri)
+            Dim result = Await response.Content.ReadAsStringAsync()
+            TextBox2.Text = result.ToString
+
+
+
+
+
+            '  Dim result = Await response.Content.ReadAsStringAsync()
+
+
+
+
+            '   response = Await client.GetAsync(uri)
+
+
+
+            'Using content = New ByteArrayContent(byteData)
+            'content.Headers.ContentType = New MediaTypeHeaderValue("application/xml")
+
+
+            ' https://api.skroutz.gr/search?q=apple
+
+
+
+            ' response = Await client.PostAsync(uri, content)
+            '  Dim result = Await response.Content.ReadAsStringAsync()
+
+            'response = Await client.PostAsync(uri, content)
+            'Dim result = Await response.Content.ReadAsStringAsync()
+            'Dim MF = "c:\txtfiles\sendinv\apantSendInv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+            'FileOpen(1, MF, OpenMode.Output)
+            'PrintLine(1, result.ToString)
+            'FileClose(1)
+
+
+            ' End Using
+
+
+        Catch ex As Exception
+
+            MsgBox(ex.ToString)
+        End Try
+
+
+    End Sub
+
+    Async Sub SKROUTZ()
+
+        Dim client = New HttpClient()
+        Dim queryString = HttpUtility.ParseQueryString(String.Empty)
+
+
+
+        client.DefaultRequestHeaders.Add("client_id", "netbox")
+
+        client.DefaultRequestHeaders.Add("client_secret", "xobten1524571846")
+        client.DefaultRequestHeaders.Add("grant_type", "RaXm-jKHWHAK0P-tws0RVhgMjyfYTzH4-HsZboRJHubXZODRTi4FtRR8SVW7R82oDgRw6EFtIFxW3E5Yh9gxhg==")
+        client.DefaultRequestHeaders.Add("scope", "public")
+
+
+
+
+        Dim uri = "hwww.skroutz.gr/oauth2/token\?"
+        'client_id \=your_client_id\&\
+        'client_secret \=your_client_secret\&\
+        ' grant_type \=client_credentials\&\
+        'scope \=public
+        Dim response As HttpResponseMessage
+        'response = Await client.PostAsync(uri, "")
+        Dim result = Await response.Content.ReadAsStringAsync()
+
+
+
+
+        response = Await client.GetAsync(uri)
+
+        TextBox2.Text = result.ToString
+
+        Dim MF = "c:\txtfiles\apantReqtome.xml"  'Inv" + Format(Now, "yyyyddMMHHmm") + ".xml"
+        FileOpen(1, MF, OpenMode.Output)
+        PrintLine(1, result.ToString)
+        FileClose(1)
 
     End Sub
 End Class
