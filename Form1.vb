@@ -8,6 +8,13 @@ Imports System.Xml.Schema
 Imports System.Data.SqlClient
 Imports System.Web
 Imports System.CodeDom.Compiler
+Imports Newtonsoft.Json
+
+
+
+Imports Newtonsoft.Json.Linq
+
+
 'Imports System.Net.Http.Headers
 'Imports System.Text
 'Imports System.Net.Http
@@ -24,6 +31,8 @@ Imports System.CodeDom.Compiler
 Public Class Form1
 
 
+
+    Dim reader As JsonTextReader
     Public openedFileStream As System.IO.Stream
     Public dataBytes() As Byte
     Public gConnect As String
@@ -32,7 +41,6 @@ Public Class Form1
     Public sqlDT2 As New DataTable
     Public gUserId As String
     Public gSubKey As String
-
 
 
 
@@ -147,141 +155,7 @@ Public Class Form1
     End Sub
 
 
-    Public Function checkServer(ByVal check_path As Integer) As Boolean
-        Dim c As String
-        Dim tmpStr As String
-        c = "Config.ini"
 
-
-        Dim par As String = ""
-        Dim mf As String
-        mf = c   ' "c:\mercvb\err3.txt"  If System.IO.File.Exists(SavePath) Then
-        If Len(Dir(UCase(mf))) = 0 Then
-            par = ":DELLAGAKIS\SQL17:sa:12345678:1:EMP"    '" 'G','g','Ξ','D'  "
-            par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ", , par)
-            gUserId = InputBox("Χρήστης", gUserId)
-            gSubKey = InputBox("Κλειδί", gSubKey)
-        Else
-            FileOpen(11, mf, OpenMode.Input)
-            '   Input(1, par)
-            par = LineInput(11)
-            gUserId = LineInput(11)
-            gSubKey = LineInput(11)
-            FileClose(11)
-        End If
-        If check_path = 1 Then
-            par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ  (CONFIG.INI ΣΤΟΝ ΤΡΕΧΟΝΤΑ ΦΑΚΕΛΟ) ", ":Π.Χ. (local)\sql2012:sa:12345678:1:EMP", par)
-            gUserId = InputBox("Χρήστης", gUserId)
-            gSubKey = InputBox("Κλειδί", gSubKey)
-        End If
-
-        'Input = InputBox("Text:")
-
-        If String.IsNullOrEmpty(par) Then
-            ' Cancelled, or empty
-            checkServer = False
-            ' MsgBox("εξοδος λογω μη σύνδεσης με βάση δεδομένων")
-            Exit Function
-        Else
-            ' Normal
-        End If
-
-
-        FileOpen(7, mf, OpenMode.Output)
-        PrintLine(7, par)
-        PrintLine(7, gUserId)
-        PrintLine(7, gSubKey)
-
-        FileClose(7)
-
-        Dim A As String
-        If System.IO.File.Exists("DATES.TXT") Then
-            FileOpen(31, "DATES.TXT", OpenMode.Input)
-            A = LineInput(31)
-            ListBox2.Items.Add(A)
-            A = LineInput(31)
-            ListBox2.Items.Add(A)
-            FileClose(31)
-
-        End If
-
-
-        ':(local)\sql2012:::2:EMP
-        ':(local)\sql2012:sa:12345678:1:EMP
-
-
-
-
-
-        Try
-
-            ' With FrmSERVERSETTINGS
-            OpenFileDialog1.FileName = c
-            openedFileStream = OpenFileDialog1.OpenFile()
-            'End With
-
-            ReDim dataBytes(openedFileStream.Length - 1) 'Init 
-            openedFileStream.Read(dataBytes, 0, openedFileStream.Length)
-            openedFileStream.Close()
-            tmpStr = par ' System.Text.Encoding.Unicode.GetString(dataBytes)
-
-            '     With FrmSERVERSETTINGS
-            If Val(Split(tmpStr, ":")(4)) = 1 Then
-                'network
-                'gConnect = "Provider=SQLOLEDB.1;" & _
-                '           "Data Source=" & Split(tmpStr, ":")(0) & _
-                '           ";Network=" & Split(tmpStr, ":")(1) & _
-                '           ";Server=" & Split(tmpStr, ":")(1) & _
-                '           ";Initial Catalog=" & Trim(Split(tmpStr, ":")(5)) & _
-                '           ";User Id=" & Split(tmpStr, ":")(2) & _
-                '           ";Password=" & Split(tmpStr, ":")(3)
-
-                gConnect = "Provider=SQLOLEDB.1;;Password=" & Split(tmpStr, ":")(3) &
-                ";Persist Security Info=True ;" &
-                ";User Id=" & Split(tmpStr, ":")(2) &
-                ";Initial Catalog=" & Trim(Split(tmpStr, ":")(5)) &
-                ";Data Source=" & Split(tmpStr, ":")(1)
-
-                ''   gConnect = "Provider=SQLOLEDB.1;;Password=" & Split(tmpStr, ":")(3) &
-                gSQLCon = "Server=" + Split(tmpStr, ":")(1)
-                gSQLCon = gSQLCon + ";Database=" + Trim(Split(tmpStr, ":")(5))
-                gSQLCon = gSQLCon + ";Uid=" + Split(tmpStr, ":")(2) + ";Pwd=" + Split(tmpStr, ":")(3)
-
-
-
-            Else
-                'local
-                'MsgBox(Split(tmpStr, ":")(1))
-                '  gConnect = "Provider=SQLOLEDB;Server=" & Split(tmpStr, ":")(1) &
-                '         ";Database=" & Split(tmpStr, ":")(5) & "; Trusted_Connection=yes;"
-
-                '    gConSQL = "Data Source=" & Split(tmpStr, ":")(1) & ";Integrated Security=True;database=" & Split(tmpStr, ":")(5)
-                'cnString = "Data Source=localhost\SQLEXPRESS;Integrated Security=True;database=YGEIA"
-
-            End If
-            'End With
-            Dim sqlCon As New OleDbConnection
-            '
-            ' gConnect = "Provider=SQLOLEDB.1;Persist Security Info=False;User ID=sa;PWD=12345678;Initial Catalog=D2014;Data Source=logisthrio\sqlexpress"
-            'GDB.Open(gConnect)
-
-
-
-            'OK
-            'gConnect = "Provider=SQLOLEDB.1;;Password=12345678;Persist Security Info=True ;User Id=sa;Initial Catalog=EMP;Data Source=LOGISTHRIO\SQLEXPRESS"
-            sqlCon.ConnectionString = gConnect
-            sqlCon.Open()
-            checkServer = True
-            sqlCon.Close()
-
-            '            Dim GDB As New ADODB.Connection
-
-        Catch ex As Exception
-            checkServer = False
-            MsgBox("εξοδος λογω μη σύνδεσης με βάση δεδομένων")
-            'End
-        End Try
-    End Function
 
 
     Function FINDTYPOS(C As String) As String
@@ -451,7 +325,7 @@ Public Class Form1
         Dim ff As String = "c:\txtfiles\inv.xml"  'c:\mercvb\m" + Format(Now, "yyyyddmmHHMM") + ".export" ' "\\Logisthrio\333\pr.export" '
         Dim writer As New XmlTextWriter(ff, System.Text.Encoding.UTF8)
         writer.WriteStartDocument(True)
-        writer.Formatting = Formatting.Indented
+        writer.Formatting = Xml.Formatting.Indented
         writer.Indentation = 2
         writer.WriteStartElement("InvoicesDoc")
         writer.WriteAttributeString("xmlns", "http://www.aade.gr/myDATA/invoice/v1.0")
@@ -1312,9 +1186,9 @@ Public Class Form1
     End Sub
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        '   If checkServer(0) Then
+        If checkServer(0) Then
 
-        '   End If
+        End If
         ' paint_ergasies(DataGridView1, "Select ATIM, HME, ENTITY, AADEKAU, AJ1 + AJ2 + AJ3 + AJ4 + AJ5 + AJ6 + AJ7 As KAUTIM, AADEFPA, FPA1 + FPA2 + FPA3 + FPA4 + FPA6 + FPA7 As FPATIM, ENTITYUID, ENTITYMARK FROM TIM WHERE ENTITY>0")
     End Sub
 
@@ -1734,16 +1608,16 @@ Public Class Form1
         Dim client = New HttpClient()
 
         Try
-            client.DefaultRequestHeaders.Add("client_id", "netbox")
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.skroutz+json; version=3.0")
 
-            client.DefaultRequestHeaders.Add("client_secret", "xobten1524571846")
-            client.DefaultRequestHeaders.Add("grant_type", "RaXm-jKHWHAK0P-tws0RVhgMjyfYTzH4-HsZboRJHubXZODRTi4FtRR8SVW7R82oDgRw6EFtIFxW3E5Yh9gxhg==")
-            client.DefaultRequestHeaders.Add("scope", "public")
-
-
+            '// client.DefaultRequestHeaders.Add("Authorization", "xobten1524571846")
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer BQN-WsvJFdttSjg00rpR1bA6fKquC72hFi3l6DzDYuDFQJb9ksG_yLtcjqeAcgnPNLVJjnWDzdAbeVn1ovB-vQ==")
+            ' // client.DefaultRequestHeaders.Add("scope", "public")
 
 
-            Dim uri = "https://api.skroutz.gr/search?q=apple"  'hwww.skroutz.gr/oauth2/token\?"
+
+
+            Dim uri = "https://api.skroutz.gr/merchants/ecommerce/orders/210127-9011968"  'hwww.skroutz.gr/oauth2/token\?"
 
 
 
@@ -1762,6 +1636,111 @@ Public Class Form1
             response = Await client.GetAsync(uri)
             Dim result = Await response.Content.ReadAsStringAsync()
             TextBox2.Text = result.ToString
+
+            Dim MF = "c:\txtfiles\sendinv\skr" + Format(Now, "yyyyddMMHHmm") + ".json"
+            FileOpen(1, MF, OpenMode.Output)
+            PrintLine(1, result.ToString)
+            FileClose(1)
+
+
+
+            '  {"order"{"code":"210127-5178005",
+            '"state""accepted",
+            '"customer":
+            '  {"id""GQYoapve57","first_name":"Βαγγέλης","last_name":"Ελληνικακης",
+            '  "address":{"street_name":"kalomiri","street_number":"22","zip":"83100","city":"samos","region":"Σάμου","pickup_from_collection_point":false}},
+            '  "invoice":false,"comments":"","courier":"ACS","courier_voucher":null, "courier_tracking_codes":  [],
+            '  "line_items":[
+            '  {"id":"MYKOK4gNYn","shop_uid":"1002","product_name":"Motospeed H19 Gaming Headset Grey","quantity":1,"unit_price":20.0,"total_price":20.0,"price_includes_vat":true}],
+
+
+            '  "created_at":"2021-01-27T13:09:01+02:00","expires_at":"2021-01-28T10:09:01+02:00",
+            '  "dispatch_until":"2021-01-29T18:00:00+02:00"}}
+            '            order.code = 210127 - 5178005
+            '            order.state = accepted
+            '            order.customer.id = GQYoapve57
+            '            order.customer.first_name = Βαγγέλης
+            '            order.customer.last_name = Ελληνικακης
+            '            order.customer.address.street_name = kalomiri
+            '            order.customer.address.street_number = 22
+            '            order.customer.address.zip = 83100
+            '            order.customer.address.city = samos
+            '            order.customer.address.region = Σάμου
+            '            order.customer.address.pickup_from_collection_point = False
+            '            order.invoice = False
+            '            order.courier = ACS
+            '            order.line_items[0].id=MYKOK4gNYn
+            'order.line_items[0].shop_uid=1002
+            'order.line_items[0].product_name=Motospeed H19 Gaming Headset Grey
+            'order.line_items[0].quantity=1
+            'order.line_items[0].unit_price=20
+            'order.line_items[0].total_price=20
+            'order.line_items[0].price_includes_vat=True
+            'order.created_at = 27 / 1 / 2021 1:09:01 μμ
+            'order.expires_at = 28 / 1 / 2021 10:09:01 πμ
+            'order.dispatch_until = 29 / 1 / 2021 6:00:00 μμ
+
+
+            Dim f, l As String
+            FileOpen(1, "c:\txtfiles\jasonstr.txt", OpenMode.Output)
+            'PrintLine(1, result.ToString)
+            'FileClose(1)
+            reader = New JsonTextReader(New StringReader(result))
+            Dim c As String
+            While reader.Read
+                If reader.Value IsNot Nothing Then
+
+                  
+                    If InStr(reader.Path, reader.Value) = 0 Then
+                        ListBox1.Items.Add(reader.Path + "=" + reader.Value.ToString)
+                        PrintLine(1, reader.Path + "=" + reader.Value.ToString)
+                    End If
+                    c = reader.Value
+                    Select Case reader.Path
+                        Case "order.customer.first_name"
+                            Dim EPO1 As String = c
+                        Case "order.customer.last_name"
+                            Dim EPO1 As String = c
+                        Case "order.customer.address.street_name"
+                            Dim EPO1 As String = c
+                        Case "order.customer.address.street_number"
+                            Dim EPO1 As String = c
+                        Case "order.customer.address.zip"
+                            Dim EPO1 As String = c
+                        Case "order.customer.address.city"
+                            Dim EPO1 As String = c
+                        Case "order.customer.address.region"
+                            Dim EPO1 As String = c
+                        Case "order.customer.first_name"
+                            Dim EPO1 As String = c
+                        Case "order.customer.first_name"
+                            Dim EPO1 As String = c
+                        Case "order.customer.first_name"
+                            Dim EPO1 As String = c
+
+
+
+
+
+                    End Select
+
+
+
+                End If
+            End While
+
+            FileClose(1)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1844,4 +1823,152 @@ Public Class Form1
         FileClose(1)
 
     End Sub
+
+    Function findJ(c As String) As String
+        findJ = ""
+        If reader.Path.Contains(c) And reader.Path <> c Then
+            findJ = reader.Value.ToString
+
+        End If
+
+    End Function
+
+
+
+    Public Function checkServer(ByVal check_path As Integer) As Boolean
+        Dim c As String
+        Dim tmpStr As String
+        c = "Config.ini"
+
+
+        Dim par As String = ""
+        Dim mf As String
+        mf = c   ' "c:\mercvb\err3.txt"  If System.IO.File.Exists(SavePath) Then
+        If Len(Dir(UCase(mf))) = 0 Then
+            par = ":DELLAGAKIS\SQL17:sa:12345678:1:EMP"    '" 'G','g','Ξ','D'  "
+            par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ", , par)
+            gUserId = InputBox("Χρήστης", gUserId)
+            gSubKey = InputBox("Κλειδί", gSubKey)
+        Else
+            FileOpen(11, mf, OpenMode.Input)
+            '   Input(1, par)
+            par = LineInput(11)
+            gUserId = LineInput(11)
+            gSubKey = LineInput(11)
+            FileClose(11)
+        End If
+        If check_path = 1 Then
+            par = InputBox("ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ  (CONFIG.INI ΣΤΟΝ ΤΡΕΧΟΝΤΑ ΦΑΚΕΛΟ) ", ":Π.Χ. (local)\sql2012:sa:12345678:1:EMP", par)
+            gUserId = InputBox("Χρήστης", gUserId)
+            gSubKey = InputBox("Κλειδί", gSubKey)
+        End If
+
+        'Input = InputBox("Text:")
+
+        If String.IsNullOrEmpty(par) Then
+            ' Cancelled, or empty
+            checkServer = False
+            ' MsgBox("εξοδος λογω μη σύνδεσης με βάση δεδομένων")
+            Exit Function
+        Else
+            ' Normal
+        End If
+
+
+        FileOpen(7, mf, OpenMode.Output)
+        PrintLine(7, par)
+        PrintLine(7, gUserId)
+        PrintLine(7, gSubKey)
+
+        FileClose(7)
+
+        Dim A As String
+        If System.IO.File.Exists("DATES.TXT") Then
+            FileOpen(31, "DATES.TXT", OpenMode.Input)
+            A = LineInput(31)
+            ListBox2.Items.Add(A)
+            A = LineInput(31)
+            ListBox2.Items.Add(A)
+            FileClose(31)
+
+        End If
+
+
+        ':(local)\sql2012:::2:EMP
+        ':(local)\sql2012:sa:12345678:1:EMP
+
+
+
+
+
+        Try
+
+            ' With FrmSERVERSETTINGS
+            OpenFileDialog1.FileName = c
+            openedFileStream = OpenFileDialog1.OpenFile()
+            'End With
+
+            ReDim dataBytes(openedFileStream.Length - 1) 'Init 
+            openedFileStream.Read(dataBytes, 0, openedFileStream.Length)
+            openedFileStream.Close()
+            tmpStr = par ' System.Text.Encoding.Unicode.GetString(dataBytes)
+
+            '     With FrmSERVERSETTINGS
+            If Val(Split(tmpStr, ":")(4)) = 1 Then
+                'network
+                'gConnect = "Provider=SQLOLEDB.1;" & _
+                '           "Data Source=" & Split(tmpStr, ":")(0) & _
+                '           ";Network=" & Split(tmpStr, ":")(1) & _
+                '           ";Server=" & Split(tmpStr, ":")(1) & _
+                '           ";Initial Catalog=" & Trim(Split(tmpStr, ":")(5)) & _
+                '           ";User Id=" & Split(tmpStr, ":")(2) & _
+                '           ";Password=" & Split(tmpStr, ":")(3)
+
+                gConnect = "Provider=SQLOLEDB.1;;Password=" & Split(tmpStr, ":")(3) &
+                ";Persist Security Info=True ;" &
+                ";User Id=" & Split(tmpStr, ":")(2) &
+                ";Initial Catalog=" & Trim(Split(tmpStr, ":")(5)) &
+                ";Data Source=" & Split(tmpStr, ":")(1)
+
+                ''   gConnect = "Provider=SQLOLEDB.1;;Password=" & Split(tmpStr, ":")(3) &
+                gSQLCon = "Server=" + Split(tmpStr, ":")(1)
+                gSQLCon = gSQLCon + ";Database=" + Trim(Split(tmpStr, ":")(5))
+                gSQLCon = gSQLCon + ";Uid=" + Split(tmpStr, ":")(2) + ";Pwd=" + Split(tmpStr, ":")(3)
+
+
+
+            Else
+                'local
+                'MsgBox(Split(tmpStr, ":")(1))
+                '  gConnect = "Provider=SQLOLEDB;Server=" & Split(tmpStr, ":")(1) &
+                '         ";Database=" & Split(tmpStr, ":")(5) & "; Trusted_Connection=yes;"
+
+                '    gConSQL = "Data Source=" & Split(tmpStr, ":")(1) & ";Integrated Security=True;database=" & Split(tmpStr, ":")(5)
+                'cnString = "Data Source=localhost\SQLEXPRESS;Integrated Security=True;database=YGEIA"
+
+            End If
+            'End With
+            Dim sqlCon As New OleDbConnection
+            '
+            ' gConnect = "Provider=SQLOLEDB.1;Persist Security Info=False;User ID=sa;PWD=12345678;Initial Catalog=D2014;Data Source=logisthrio\sqlexpress"
+            'GDB.Open(gConnect)
+
+
+
+            'OK
+            'gConnect = "Provider=SQLOLEDB.1;;Password=12345678;Persist Security Info=True ;User Id=sa;Initial Catalog=EMP;Data Source=LOGISTHRIO\SQLEXPRESS"
+            sqlCon.ConnectionString = gConnect
+            sqlCon.Open()
+            checkServer = True
+            sqlCon.Close()
+
+            '            Dim GDB As New ADODB.Connection
+
+        Catch ex As Exception
+            checkServer = False
+            MsgBox("εξοδος λογω μη σύνδεσης με βάση δεδομένων")
+            'End
+        End Try
+    End Function
+
 End Class
