@@ -32,6 +32,9 @@ Partial Class nikosg
         Me.ListBox2 = New System.Windows.Forms.ListBox()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.TextBox2 = New System.Windows.Forms.TextBox()
+        Me.Button3 = New System.Windows.Forms.Button()
+        Me.ListBox3 = New System.Windows.Forms.ListBox()
+        Me.ListBox4 = New System.Windows.Forms.ListBox()
         Me.SuspendLayout()
         '
         'Button9
@@ -103,26 +106,54 @@ Partial Class nikosg
         '
         'Button1
         '
-        Me.Button1.Location = New System.Drawing.Point(618, 49)
+        Me.Button1.Location = New System.Drawing.Point(1105, 1)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(131, 29)
+        Me.Button1.Size = New System.Drawing.Size(131, 10)
         Me.Button1.TabIndex = 29
         Me.Button1.Text = "Button1"
         Me.Button1.UseVisualStyleBackColor = True
         '
         'TextBox2
         '
-        Me.TextBox2.Location = New System.Drawing.Point(1169, 530)
+        Me.TextBox2.Location = New System.Drawing.Point(1169, 644)
         Me.TextBox2.Multiline = True
         Me.TextBox2.Name = "TextBox2"
-        Me.TextBox2.Size = New System.Drawing.Size(335, 124)
+        Me.TextBox2.Size = New System.Drawing.Size(335, 10)
         Me.TextBox2.TabIndex = 30
+        '
+        'Button3
+        '
+        Me.Button3.Location = New System.Drawing.Point(733, 51)
+        Me.Button3.Name = "Button3"
+        Me.Button3.Size = New System.Drawing.Size(130, 28)
+        Me.Button3.TabIndex = 31
+        Me.Button3.Text = "διαγραφη προσωρινων"
+        Me.Button3.UseVisualStyleBackColor = True
+        '
+        'ListBox3
+        '
+        Me.ListBox3.FormattingEnabled = True
+        Me.ListBox3.Location = New System.Drawing.Point(12, 530)
+        Me.ListBox3.Name = "ListBox3"
+        Me.ListBox3.Size = New System.Drawing.Size(715, 121)
+        Me.ListBox3.TabIndex = 32
+        '
+        'ListBox4
+        '
+        Me.ListBox4.FormattingEnabled = True
+        Me.ListBox4.Location = New System.Drawing.Point(1169, 529)
+        Me.ListBox4.Name = "ListBox4"
+        Me.ListBox4.Size = New System.Drawing.Size(272, 121)
+        Me.ListBox4.TabIndex = 33
         '
         'nikosg
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1453, 730)
+        Me.Controls.Add(Me.ListBox4)
+        Me.Controls.Add(Me.ListBox3)
+        Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.TextBox2)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.ListBox2)
@@ -149,4 +180,7 @@ Partial Class nikosg
     Friend WithEvents ListBox2 As ListBox
     Friend WithEvents Button1 As Button
     Friend WithEvents TextBox2 As TextBox
+    Friend WithEvents Button3 As Button
+    Friend WithEvents ListBox3 As ListBox
+    Friend WithEvents ListBox4 As ListBox
 End Class

@@ -161,6 +161,11 @@ Public Class nikosg
             For K = 2 To N
                 If InStr(PEDIO(K), "customer") > 0 Or InStr(PEDIO(K), "invoice") > 0 Then
                     Try
+                        ListBox4.Items.Add(PEDIO(K) + "  " + TIMH(K))
+                        If InStr(PEDIO(K), "order.customer.address.street_number") > 0 Then
+                            TIMH(K) = Mid(TIMH(K), 1, 5)
+                        End If
+
                         ExecuteSQLQuery("update orders Set " + PEDIO(K) + "='" + TIMH(K) + "' where [order.code]='" + TIMH(1) + "'")
 
                     Catch ex As Exception
@@ -177,7 +182,7 @@ Public Class nikosg
             Dim quantity As String = FindByName("[order.line_items[0].quantity]")
             Dim unit_price As String = FindByName("[order.line_items[0].unit_price]")
             '  Dim shop_uid As String = FindByName("[order.line_items[0].shop_uid]")
-
+            unit_price = Replace(unit_price, ",", ".")
 
             Dim SQL As String
             'order.line_items[0].unit_price
@@ -214,6 +219,18 @@ Public Class nikosg
 
             MsgBox(ex.ToString)
         End Try
+
+
+        ExecuteSQLQuery("select [order.code] as kod,shop_uid from orderdetails")
+        ListBox3.Items.Clear()
+        For k As Integer = 0 To sqlDT.Rows.Count - 1
+
+            ListBox3.Items.Add(sqlDT.Rows(k)("kod") + "  κωδ¨:" + sqlDT.Rows(k)("shop_uid"))
+
+        Next
+
+
+
 
 
     End Sub
@@ -428,7 +445,10 @@ Public Class nikosg
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
 
         ' DIABAZEI THN SELIDA
-        Dim ts As Task = getSource()
+        '  Dim ts As Task = getSource()
+
+
+
         Dim ff As String = Application.StartupPath + "/currentSource.txt"
         '  Exit Sub
         '  MsgBox("OK")
@@ -660,7 +680,43 @@ Public Class nikosg
 
     Private Sub ListBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox1.SelectedIndexChanged
         Dim c As String
-        order.Text = Mid(ListBox1.SelectedItem, 1, 14)
+        '  order.Text = Mid(ListBox1.SelectedItem, 1, 14)
+
+
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        ExecuteSQLQuery("delete from orders")
+        ExecuteSQLQuery("delete from orderdetails")
+
+
+        ExecuteSQLQuery("select [order.code] as kod,shop_uid from orderdetails")
+        ListBox3.Items.Clear()
+        For k As Integer = 0 To sqlDT.Rows.Count - 1
+
+            ListBox3.Items.Add(sqlDT.Rows(k)("kod") + "  κωδ¨:" + sqlDT.Rows(k)("shop_uid"))
+
+        Next
+
+
+
+
+    End Sub
+
+    Private Sub ListBox1_Click(sender As Object, e As EventArgs) Handles ListBox1.Click
+
+        If Mid(ListBox1.SelectedItem, 1, 2) = "**" Then
+        Else
+
+
+            order.Text = Mid(ListBox1.SelectedItem, 1, 14)
+            If ListBox1.SelectedIndex >= 0 Then
+                ListBox1.Items(ListBox1.SelectedIndex) = "**" + ListBox1.Items(ListBox1.SelectedIndex)
+            End If
+
+
+        End If
 
 
     End Sub
